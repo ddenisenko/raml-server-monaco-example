@@ -63,6 +63,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var symbols = __webpack_require__(4);
 	var definition = __webpack_require__(5);
 	var usages = __webpack_require__(6);
+	var rename = __webpack_require__(7);
 	var RAML_LANGUAGE = "RAML";
 	function setupGeneralProperties(monacoEngine) {
 	    monacoEngine.languages.setLanguageConfiguration(RAML_LANGUAGE, {
@@ -95,12 +96,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    symbols.init(monacoEngine, RAML_LANGUAGE);
 	    definition.init(monacoEngine, RAML_LANGUAGE);
 	    usages.init(monacoEngine, RAML_LANGUAGE);
+	    rename.init(monacoEngine, RAML_LANGUAGE);
 	    RAML.Server.getConnection().setLoggerConfiguration({
 	        allowedComponents: [
-	            "StructureManager",
+	            "RenameActionModule",
 	            "WebServerConnection"
 	        ],
-	        maxSeverity: 0,
+	        maxSeverity: null,
 	        maxMessageLength: 5000
 	    });
 	}
@@ -352,7 +354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var ls = __webpack_require__(7);
+	var ls = __webpack_require__(8);
 	var latestStructure = null;
 	function calculateSymbols(model) {
 	    var uri = "/test.raml";
@@ -537,9 +539,75 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
+	Object.defineProperty(exports, "__esModule", { value: true });
+	function rename(model, position, newName) {
+	    var uri = "/test.raml";
+	    var offset = model.getOffsetAt(position);
+	    return RAML.Server.getConnection().rename(uri, offset, newName).then(function (changedDocuments) {
+	        if (!changedDocuments || changedDocuments.length < 1)
+	            return null;
+	        var result = {
+	            edits: []
+	        };
+	        for (var _i = 0, changedDocuments_1 = changedDocuments; _i < changedDocuments_1.length; _i++) {
+	            var changedDocument = changedDocuments_1[_i];
+	            if (changedDocument.text !== null) {
+	                var fullModelRange = model.getFullModelRange();
+	                var resourceEdit = {
+	                    resource: model.uri,
+	                    newText: changedDocument.text,
+	                    range: {
+	                        startLineNumber: fullModelRange.startLineNumber,
+	                        startColumn: fullModelRange.startColumn,
+	                        endLineNumber: fullModelRange.endLineNumber,
+	                        endColumn: fullModelRange.endColumn
+	                    }
+	                };
+	                result.edits.push(resourceEdit);
+	            }
+	            else if (changedDocument.textEdits) {
+	                for (var _a = 0, _b = changedDocument.textEdits; _a < _b.length; _a++) {
+	                    var textEdit = _b[_a];
+	                    var serverRange = textEdit.range;
+	                    var start = model.getPositionAt(serverRange.start);
+	                    var end = model.getPositionAt(serverRange.end);
+	                    var modelRange = {
+	                        startLineNumber: start.lineNumber,
+	                        startColumn: start.column,
+	                        endLineNumber: end.lineNumber,
+	                        endColumn: end.column
+	                    };
+	                    var resourceEdit = {
+	                        resource: model.uri,
+	                        newText: textEdit.text,
+	                        range: modelRange
+	                    };
+	                    result.edits.push(resourceEdit);
+	                }
+	            }
+	        }
+	        return result;
+	    });
+	}
+	function init(monacoEngine, languageIdentifier) {
+	    monacoEngine.languages.registerRenameProvider(languageIdentifier, {
+	        provideRenameEdits: function (model, position, newName, token) {
+	            return rename(model, position, newName);
+	        }
+	    });
+	}
+	exports.init = init;
+	//# sourceMappingURL=rename.js.map
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (factory) {
 	    if (typeof module === "object" && typeof module.exports === "object") {
-	        var v = factory(__webpack_require__(8), exports);
+	        var v = factory(__webpack_require__(9), exports);
 	        if (v !== undefined) module.exports = v;
 	    }
 	    else if (true) {
@@ -1445,12 +1513,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./main": 7,
-		"./main.js": 7
+		"./main": 8,
+		"./main.js": 8
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -1458,7 +1526,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function webpackContextResolve(req) {
 		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
 	};
-	webpackContext.id = 8;
+	webpackContext.id = 9;
 	webpackContext.keys = function webpackContextKeys() {
 		return Object.keys(map);
 	};

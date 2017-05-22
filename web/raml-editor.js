@@ -89,7 +89,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	    setupGeneralProperties(monacoEngine);
 	    setupColoring(monacoEngine);
-	    RAML.Server.launch("../node_modules/raml-language-server-web/worker.bundle.js");
+	    RAML.Server.launch("../node_modules/raml-language-server-browser/worker.bundle.js");
 	    validation.init(monacoEngine, RAML_LANGUAGE);
 	    completion.init(monacoEngine, RAML_LANGUAGE);
 	    symbols.init(monacoEngine, RAML_LANGUAGE);

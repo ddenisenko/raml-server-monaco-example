@@ -38,11 +38,16 @@
 <h2>RAML Server Monaco Example</h2>
 <div id="container" style="width:800px;height:600px;border:1px solid grey"></div>
 
-<script src="../node_modules/raml-language-server-web/bundle.bundle.js"></script>
-<script src="../node_modules/raml-language-server-web/raml-json-validation.js"></script>
-<script src="../node_modules/raml-language-server-web/raml-xml-validation.js"></script>
+<script src="../node_modules/raml-language-server-browser/client.bundle.js"></script>
+
+<!-- These dependencies can be added if json and xml validation is required. For now RAML server browser NPM
+does not not contain the plugins. -->
+<!--<script src="../node_modules/raml-language-server-browser/raml-json-validation.js"></script>-->
+<!--<script src="../node_modules/raml-language-server-browser/raml-xml-validation.js"></script>-->
+
 <script src="raml-editor.js"></script>
-<script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+<script src="../docs/loader.js"></script>
+
 
 
 <script>

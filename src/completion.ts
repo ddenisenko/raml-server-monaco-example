@@ -13,7 +13,7 @@ function removeCompletionPreviousLineIndentation(originalText: string) {
 }
 
 function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position : monaco.IPosition) {
-    let uri = "/test.raml"
+    let uri = model.uri.toString()
 
     let offset = model.getOffsetAt(position);
 

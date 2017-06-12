@@ -64,6 +64,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var definition = __webpack_require__(5);
 	var usages = __webpack_require__(6);
 	var rename = __webpack_require__(7);
+	var filesystem = __webpack_require__(8);
 	var RAML_LANGUAGE = "RAML";
 	function setupGeneralProperties(monacoEngine) {
 	    monacoEngine.languages.setLanguageConfiguration(RAML_LANGUAGE, {
@@ -97,6 +98,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    definition.init(monacoEngine, RAML_LANGUAGE);
 	    usages.init(monacoEngine, RAML_LANGUAGE);
 	    rename.init(monacoEngine, RAML_LANGUAGE);
+	    filesystem.init(monacoEngine, RAML_LANGUAGE);
 	    RAML.Server.getConnection().setLoggerConfiguration({
 	        allowedComponents: [
 	            "RenameActionModule",
@@ -248,7 +250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var modelListeners = {};
 	var uriToModel = {};
 	function newModel(model) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    uriToModel[uri] = model;
 	    RAML.Server.getConnection().documentOpened({
 	        uri: uri,
@@ -256,7 +258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	}
 	function modelChanged(model) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    uriToModel[uri] = model;
 	    RAML.Server.getConnection().documentChanged({
 	        uri: uri,
@@ -283,7 +285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        delete uriToModel[uriStr];
 	    });
 	    RAML.Server.getConnection().onValidationReport(function (report) {
-	        var model = uriToModel["/test.raml"];
+	        var model = uriToModel[report.pointOfViewUri];
 	        if (!model)
 	            return;
 	        var markers = report.issues.map(function (issue) {
@@ -321,7 +323,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return originalText.substring(0, lastNewLineIndex + 1) + "  ";
 	}
 	function calculateCompletionItems(model, position) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    var offset = model.getOffsetAt(position);
 	    return RAML.Server.getConnection().getSuggestions(uri, offset).then(function (suggestions) {
 	        var result = [];
@@ -354,10 +356,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var ls = __webpack_require__(8);
+	var ls = __webpack_require__(9);
 	var latestStructure = null;
 	function calculateSymbols(model) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    if (latestStructure) {
 	        var result = [];
 	        var _loop_1 = function (categoryName) {
@@ -465,7 +467,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
 	function calculateDefinition(model, position) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    var offset = model.getOffsetAt(position);
 	    return RAML.Server.getConnection().openDeclaration(uri, offset).then(function (locations) {
 	        if (!locations || locations.length < 1)
@@ -502,7 +504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
 	function calculateUsages(model, position) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    var offset = model.getOffsetAt(position);
 	    return RAML.Server.getConnection().findReferences(uri, offset).then(function (locations) {
 	        var result = [];
@@ -543,7 +545,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
 	function rename(model, position, newName) {
-	    var uri = "/test.raml";
+	    var uri = model.uri.toString();
 	    var offset = model.getOffsetAt(position);
 	    return RAML.Server.getConnection().rename(uri, offset, newName).then(function (changedDocuments) {
 	        if (!changedDocuments || changedDocuments.length < 1)
@@ -605,9 +607,65 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var VirtualFileSystem = (function () {
+	    function VirtualFileSystem() {
+	    }
+	    /**
+	     * File contents by full path, asynchronously.
+	     * @param fullPath
+	     */
+	    VirtualFileSystem.prototype.contentAsync = function (fullPath) {
+	        return Promise.resolve("");
+	    };
+	    /**
+	     * Check whether the path points to a directory.
+	     * @param fullPath
+	     */
+	    VirtualFileSystem.prototype.isDirectoryAsync = function (path) {
+	        return Promise.resolve(false);
+	    };
+	    /**
+	     * Checks item existance.
+	     * @param fullPath
+	     */
+	    VirtualFileSystem.prototype.existsAsync = function (path) {
+	        return Promise.resolve(false);
+	    };
+	    /**
+	     * Lists directory contents.
+	     * @param fullPath
+	     */
+	    VirtualFileSystem.prototype.listAsync = function (path) {
+	        return Promise.resolve([]);
+	    };
+	    /**
+	     * Creates new file at the path.
+	     * @param path
+	     * @param contents
+	     */
+	    VirtualFileSystem.prototype.newFile = function (path, contents) {
+	    };
+	    return VirtualFileSystem;
+	}());
+	function getFileSystem() {
+	    return null;
+	}
+	exports.getFileSystem = getFileSystem;
+	function init(monacoEngine, languageIdentifier) {
+	}
+	exports.init = init;
+	//# sourceMappingURL=filesystem.js.map
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (factory) {
 	    if (typeof module === "object" && typeof module.exports === "object") {
-	        var v = factory(__webpack_require__(9), exports);
+	        var v = factory(__webpack_require__(10), exports);
 	        if (v !== undefined) module.exports = v;
 	    }
 	    else if (true) {
@@ -1513,12 +1571,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./main": 8,
-		"./main.js": 8
+		"./main": 9,
+		"./main.js": 9
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -1526,7 +1584,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function webpackContextResolve(req) {
 		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
 	};
-	webpackContext.id = 9;
+	webpackContext.id = 10;
 	webpackContext.keys = function webpackContextKeys() {
 		return Object.keys(map);
 	};

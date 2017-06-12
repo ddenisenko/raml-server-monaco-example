@@ -8,7 +8,7 @@ var latestStructure = null;
 
 function calculateSymbols(model : monaco.editor.IReadOnlyModel) {
 
-    let uri = "/test.raml"
+    let uri = model.uri.toString()
 
     if(latestStructure) {
         var result = [];

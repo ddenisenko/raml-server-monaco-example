@@ -9,7 +9,7 @@ let uriToModel : {[url:string] : monaco.editor.IModel} = {}
 
 function newModel(model: monaco.editor.IModel) : void {
 
-    let uri = "/test.raml"
+    let uri = model.uri.toString()
     uriToModel[uri] = model;
 
     RAML.Server.getConnection().documentOpened({
@@ -20,7 +20,7 @@ function newModel(model: monaco.editor.IModel) : void {
 
 function modelChanged(model: monaco.editor.IModel) : void {
 
-    let uri = "/test.raml"
+    let uri = model.uri.toString()
     uriToModel[uri] = model;
 
     RAML.Server.getConnection().documentChanged({
@@ -57,7 +57,7 @@ export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
     });
 
     RAML.Server.getConnection().onValidationReport(report=>{
-        let model = uriToModel["/test.raml"]
+        let model = uriToModel[report.pointOfViewUri]
         if (!model) return;
 
         let markers = report.issues.map(issue => {

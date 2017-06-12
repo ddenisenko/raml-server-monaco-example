@@ -7,7 +7,7 @@ import * as ls from 'vscode-languageserver-types';
 function rename(model : monaco.editor.IReadOnlyModel, position: monaco.Position,
     newName : string) : monaco.Thenable<monaco.languages.WorkspaceEdit> {
 
-    let uri = "/test.raml"
+    let uri = model.uri.toString()
 
     let offset = model.getOffsetAt(position);
     return RAML.Server.getConnection().rename(uri, offset, newName).then((changedDocuments)=>{

@@ -7,6 +7,7 @@ import symbols = require('./symbols')
 import definition = require('./definition')
 import usages = require('./usages')
 import rename = require('./rename')
+import filesystem = require('./filesystem')
 
 const RAML_LANGUAGE = "RAML"
 
@@ -58,6 +59,8 @@ export function init(monacoEngine : typeof monaco) {
     usages.init(monacoEngine, RAML_LANGUAGE)
 
     rename.init(monacoEngine, RAML_LANGUAGE)
+
+    filesystem.init(monacoEngine, RAML_LANGUAGE)
 
     RAML.Server.getConnection().setLoggerConfiguration({
         allowedComponents: [

@@ -7,7 +7,7 @@ import * as ls from 'vscode-languageserver-types';
 function calculateUsages(model : monaco.editor.IReadOnlyModel, position: monaco.Position) :
     monaco.Thenable<monaco.languages.Location[]> {
 
-    let uri = "/test.raml"
+    let uri = model.uri.toString()
 
     let offset = model.getOffsetAt(position);
     return RAML.Server.getConnection().findReferences(uri, offset).then((locations:any[])=>{

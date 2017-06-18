@@ -48,6 +48,8 @@ export function init(monacoEngine : typeof monaco) {
 
     RAML.Server.launch("../node_modules/raml-language-server-browser/worker.bundle.js")
 
+    filesystem.init(monacoEngine, RAML_LANGUAGE)
+
     validation.init(monacoEngine, RAML_LANGUAGE)
 
     completion.init(monacoEngine, RAML_LANGUAGE)
@@ -59,8 +61,6 @@ export function init(monacoEngine : typeof monaco) {
     usages.init(monacoEngine, RAML_LANGUAGE)
 
     rename.init(monacoEngine, RAML_LANGUAGE)
-
-    filesystem.init(monacoEngine, RAML_LANGUAGE)
 
     RAML.Server.getConnection().setLoggerConfiguration({
         allowedComponents: [

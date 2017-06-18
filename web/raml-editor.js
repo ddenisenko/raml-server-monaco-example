@@ -92,13 +92,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    setupGeneralProperties(monacoEngine);
 	    setupColoring(monacoEngine);
 	    RAML.Server.launch("../node_modules/raml-language-server-browser/worker.bundle.js");
+	    filesystem.init(monacoEngine, RAML_LANGUAGE);
 	    validation.init(monacoEngine, RAML_LANGUAGE);
 	    completion.init(monacoEngine, RAML_LANGUAGE);
 	    symbols.init(monacoEngine, RAML_LANGUAGE);
 	    definition.init(monacoEngine, RAML_LANGUAGE);
 	    usages.init(monacoEngine, RAML_LANGUAGE);
 	    rename.init(monacoEngine, RAML_LANGUAGE);
-	    filesystem.init(monacoEngine, RAML_LANGUAGE);
 	    RAML.Server.getConnection().setLoggerConfiguration({
 	        allowedComponents: [
 	            "RenameActionModule",
@@ -610,51 +610,184 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
+	var FileEntry = (function () {
+	    function FileEntry(name, parent, isFolder) {
+	        /**
+	         * Folder children, empty for files.
+	         */
+	        this.children = [];
+	        this.name = name;
+	        this.parent = parent;
+	        if (this.parent) {
+	            this.parent.children.push(this);
+	        }
+	        this.isFolder = isFolder;
+	    }
+	    /**
+	     * Whether this entry is FS root.
+	     */
+	    FileEntry.prototype.isRoot = function () {
+	        return this.parent == null;
+	    };
+	    FileEntry.prototype.getFullPath = function () {
+	        var segmentEntries = [];
+	        var current = this;
+	        while (current) {
+	            segmentEntries.unshift(current);
+	            current = current.parent;
+	        }
+	        return "/" + segmentEntries.join("/");
+	    };
+	    FileEntry.prototype.childByName = function (name) {
+	        if (!this.isFolder)
+	            return null;
+	        for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
+	            var child = _a[_i];
+	            if (child.name == name)
+	                return child;
+	        }
+	        return null;
+	    };
+	    return FileEntry;
+	}());
 	var VirtualFileSystem = (function () {
 	    function VirtualFileSystem() {
+	        this.root = new FileEntry(null, null, true);
 	    }
 	    /**
 	     * File contents by full path, asynchronously.
 	     * @param fullPath
 	     */
 	    VirtualFileSystem.prototype.contentAsync = function (fullPath) {
-	        return Promise.resolve("");
+	        var entry = this.entryByFullPath(fullPath);
+	        if (!entry)
+	            return Promise.reject(new Error(fullPath + " does not exist"));
+	        if (entry.isFolder)
+	            return Promise.reject(new Error(fullPath + " is not a file"));
+	        if (entry.contents === null)
+	            return Promise.reject(new Error(fullPath + " file has no contents"));
+	        return Promise.resolve(entry.contents);
 	    };
 	    /**
 	     * Check whether the path points to a directory.
 	     * @param fullPath
 	     */
 	    VirtualFileSystem.prototype.isDirectoryAsync = function (path) {
-	        return Promise.resolve(false);
+	        var entry = this.entryByFullPath(path);
+	        if (!entry)
+	            return Promise.reject(new Error(path + " does not exist"));
+	        return Promise.resolve(entry.isFolder);
 	    };
 	    /**
 	     * Checks item existance.
 	     * @param fullPath
 	     */
 	    VirtualFileSystem.prototype.existsAsync = function (path) {
-	        return Promise.resolve(false);
+	        var entry = this.entryByFullPath(path);
+	        return Promise.resolve(entry ? true : false);
 	    };
 	    /**
 	     * Lists directory contents.
 	     * @param fullPath
 	     */
 	    VirtualFileSystem.prototype.listAsync = function (path) {
-	        return Promise.resolve([]);
+	        var entry = this.entryByFullPath(path);
+	        if (!entry)
+	            return Promise.reject(new Error(path + " does not exist"));
+	        if (!entry.isFolder)
+	            return Promise.reject(new Error(path + " is a file"));
+	        return Promise.resolve(entry.children.map(function (child) { return child.name; }));
 	    };
 	    /**
 	     * Creates new file at the path.
+	     * @param parentFolderPath - parent folder path, null for root
+	     * @param fileName - new file name
+	     * @param contents - optional file contents
+	     */
+	    VirtualFileSystem.prototype.newFile = function (parentFolderPath, fileName, contents) {
+	        var parent = (!parentFolderPath || parentFolderPath == "/") ?
+	            this.root : this.entryByFullPath(parentFolderPath);
+	        if (!parent)
+	            throw new Error(parentFolderPath + " does not exist");
+	        if (!parent.isFolder)
+	            throw new Error(parentFolderPath + " is file");
+	        if (parent.childByName(fileName))
+	            throw new Error("File" + fileName
+	                + " already exists in " + parentFolderPath);
+	        var result = new FileEntry(fileName, parent, false);
+	        result.contents = contents;
+	    };
+	    /**
+	     * Creates new folder at the path.
+	     * @param parentFolderPath - parent folder path, null for root
+	     * @param folderName - new folder name
+	     */
+	    VirtualFileSystem.prototype.newFolder = function (parentFolderPath, folderName) {
+	        var parent = (!parentFolderPath || parentFolderPath == "/") ?
+	            this.root : this.entryByFullPath(parentFolderPath);
+	        if (!parent)
+	            throw new Error(parentFolderPath + " does not exist");
+	        if (!parent.isFolder)
+	            throw new Error(parentFolderPath + " is file");
+	        if (parent.childByName(folderName))
+	            throw new Error("File" + folderName
+	                + " already exists in " + parentFolderPath);
+	        var result = new FileEntry(folderName, parent, true);
+	    };
+	    /**
+	     * Sets file contents.
 	     * @param path
 	     * @param contents
+	     * @returns {Promise<any>}
 	     */
-	    VirtualFileSystem.prototype.newFile = function (path, contents) {
+	    VirtualFileSystem.prototype.setFileContents = function (path, contents) {
+	        var entry = this.entryByFullPath(path);
+	        if (!entry)
+	            throw new Error(path + " does not exist");
+	        if (entry.isFolder)
+	            throw new Error(path + " is not a file");
+	        entry.contents = contents;
+	    };
+	    VirtualFileSystem.prototype.entryByFullPath = function (path) {
+	        var segments = path.split("/");
+	        var currentEntry = this.root;
+	        for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {
+	            var segment = segments_1[_i];
+	            if (!segment)
+	                continue;
+	            var child = currentEntry.childByName(segment);
+	            if (!child)
+	                return null;
+	            currentEntry = child;
+	        }
+	        return currentEntry;
 	    };
 	    return VirtualFileSystem;
 	}());
+	var fileSystem = new VirtualFileSystem();
 	function getFileSystem() {
-	    return null;
+	    return fileSystem;
 	}
 	exports.getFileSystem = getFileSystem;
 	function init(monacoEngine, languageIdentifier) {
+	    var fs = getFileSystem();
+	    RAML.Server.getConnection().onExists(function (path) { return fs.existsAsync(path); });
+	    RAML.Server.getConnection().onReadDir(function (path) { return fs.listAsync(path); });
+	    RAML.Server.getConnection().onIsDirectory(function (path) { return fs.isDirectoryAsync(path); });
+	    RAML.Server.getConnection().onContent(function (path) { return fs.contentAsync(path); });
+	    fs.newFile(null, "test.raml", [
+	        '#%RAML 1.0',
+	        'title: Test API'
+	    ].join('\n'));
+	    fs.newFile(null, "library2.raml", [
+	        '#%RAML 1.0 Library',
+	        '',
+	        '  types:',
+	        '    DaType:',
+	        '      type: object',
+	        '      properties:',
+	        '        testProp: string',
+	    ].join('\n'));
 	}
 	exports.init = init;
 	//# sourceMappingURL=filesystem.js.map

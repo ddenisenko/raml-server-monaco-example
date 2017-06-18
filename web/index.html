@@ -86,7 +86,9 @@ does not not contain the plugins. -->
             ]
         });
 
+        var model = monaco.editor.createModel(getCode(), 'RAML', "/test.raml")
         var editor = monaco.editor.create(document.getElementById('container'), {
+            model: model,
             value: getCode(),
             language: 'RAML',
             theme: "myCustomTheme"

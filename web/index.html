@@ -44,6 +44,32 @@
         </div>
     </div>
     <div class="row">
+        <div class="col-md-4" style="margin-bottom:1em">
+            <div class="btn-toolbar" role="toolbar" aria-label="File browser toolbar">
+                <div class="btn-group mr-2" role="group" aria-label="First group">
+                    <button type="button" class="btn btn-secondary btn-sm">
+                        <span class="glyphicon glyphicon-plus"></span> File
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm">
+                        <span class="glyphicon glyphicon-folder-open"></span> Folder
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm">
+                        <span class="glyphicon glyphicon-minus"></span> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="btn-toolbar" role="toolbar" aria-label="Editor toolbar">
+                <div class="btn-group mr-2" role="group" aria-label="First group">
+                    <button type="button" class="btn btn-secondary btn-sm">
+                        <span class="glyphicon glyphicon-floppy-disk"></span> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-4">
             <div id="tree"></div>
         </div>
@@ -146,41 +172,6 @@ does not not contain the plugins. -->
 
         var fileSystemJSON = RAML.Editor.getFileSystemJSON();
         return fileSystemJSON.nodes;
-//        var tree = [
-//            {
-//                text: "Parent 1",
-//                nodes: [
-//                    {
-//                        text: "Child 1",
-//                        nodes: [
-//                            {
-//                                text: "Grandchild 1"
-//                            },
-//                            {
-//                                text: "Grandchild 2"
-//                            }
-//                        ]
-//                    },
-//                    {
-//                        text: "Child 2"
-//                    }
-//                ]
-//            },
-//            {
-//                text: "Parent 2"
-//            },
-//            {
-//                text: "Parent 3"
-//            },
-//            {
-//                text: "Parent 4"
-//            },
-//            {
-//                text: "Parent 5"
-//            }
-//        ];
-//
-//        return tree;
     }
 </script>
 </body>

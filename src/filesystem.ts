@@ -2,6 +2,29 @@
 
 declare let RAML : any
 
+/**
+ * Interface describing JSON, file system can be exported as
+ */
+export interface FileJSON {
+
+    /**
+     * File or folder name.
+     */
+    text: string,
+
+    /**
+     * Children, in case of a folder.
+     */
+    nodes?:FileJSON[],
+
+    /**
+     * If true, this node is selectable (file).
+     */
+    selectable: boolean,
+
+    fullPath: string
+}
+
 export interface FileSystem {
     /**
      * Creates new file at the path.
@@ -25,6 +48,12 @@ export interface FileSystem {
     contentAsync(fullPath:string):Promise<string>;
 
     /**
+     * File contents by full path, synchronously.
+     * @param fullPath
+     */
+    content(fullPath:string):string;
+
+    /**
      * Check whether the path points to a directory.
      * @param fullPath
      */
@@ -41,6 +70,11 @@ export interface FileSystem {
      * @param fullPath
      */
     listAsync(path: string): Promise<string[]>;
+
+    /**
+     * Exports the whole file system as JSON. Root element has empty text.
+     */
+    toJSON() : FileJSON;
 }
 
 class FileEntry {
@@ -93,7 +127,7 @@ class FileEntry {
             current = current.parent;
         }
 
-        return "/" + segmentEntries.join("/");
+        return segmentEntries.map(segment=>segment.name).join("/");
     }
 
     childByName(name : string) : FileEntry {
@@ -104,6 +138,20 @@ class FileEntry {
         }
 
         return null;
+    }
+
+    toJSON() : FileJSON {
+        let result : FileJSON = {
+            text: this.name,
+            selectable: !this.isFolder,
+            fullPath: this.getFullPath()
+        }
+
+        if (this.children && this.children.length > 0) {
+            result.nodes = this.children.map(child=>child.toJSON())
+        }
+
+        return result;
     }
 }
 
@@ -129,6 +177,22 @@ class VirtualFileSystem implements FileSystem {
         if (entry.contents === null) return Promise.reject(new Error(fullPath + " file has no contents"))
 
         return Promise.resolve(entry.contents)
+    }
+
+    /**
+     * File contents by full path, asynchronously.
+     * @param fullPath
+     */
+    content(fullPath:string):string {
+        let entry = this.entryByFullPath(fullPath);
+
+        if (!entry) throw new Error(fullPath + " does not exist")
+
+        if (entry.isFolder) throw new Error(fullPath + " is not a file")
+
+        if (entry.contents === null) throw new Error(fullPath + " file has no contents")
+
+        return entry.contents
     }
 
     /**
@@ -221,6 +285,13 @@ class VirtualFileSystem implements FileSystem {
         if (entry.isFolder) throw new Error(path + " is not a file")
 
         entry.contents = contents;
+    }
+
+    /**
+     * Exports the whole file system as JSON. Root element has empty text.
+     */
+    toJSON() : FileJSON {
+        return this.root.toJSON();
     }
 
     private entryByFullPath(path : string) : FileEntry {

@@ -22,7 +22,8 @@
   "homepage": "https://github.com/ddenisenko/raml-server-monaco-example#readme",
   "typings": "./dist/index.d.ts",
   "dependencies": {
-    "raml-language-server-browser":"0.0.2"
+    "raml-language-server-browser":"0.0.2",
+    "bootstrap-treeview":"*"
   },
   "devDependencies": {
     "monaco-editor": "^0.8.3",

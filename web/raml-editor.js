@@ -109,6 +109,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	}
 	exports.init = init;
+	/**
+	 * Exports current main file system as JSON.
+	 * @returns {FileJSON}
+	 */
+	function getFileSystemJSON() {
+	    return filesystem.getFileSystem().toJSON();
+	}
+	exports.getFileSystemJSON = getFileSystemJSON;
+	/**
+	 * Gets file contents by fulll path
+	 * @param fullFilePath
+	 */
+	function getFileContents(fullFilePath) {
+	    return filesystem.getFileSystem().content(fullFilePath);
+	}
+	exports.getFileContents = getFileContents;
 	//# sourceMappingURL=index.js.map
 
 /***/ },
@@ -636,7 +652,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            segmentEntries.unshift(current);
 	            current = current.parent;
 	        }
-	        return "/" + segmentEntries.join("/");
+	        return segmentEntries.map(function (segment) { return segment.name; }).join("/");
 	    };
 	    FileEntry.prototype.childByName = function (name) {
 	        if (!this.isFolder)
@@ -647,6 +663,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return child;
 	        }
 	        return null;
+	    };
+	    FileEntry.prototype.toJSON = function () {
+	        var result = {
+	            text: this.name,
+	            selectable: !this.isFolder,
+	            fullPath: this.getFullPath()
+	        };
+	        if (this.children && this.children.length > 0) {
+	            result.nodes = this.children.map(function (child) { return child.toJSON(); });
+	        }
+	        return result;
 	    };
 	    return FileEntry;
 	}());
@@ -667,6 +694,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (entry.contents === null)
 	            return Promise.reject(new Error(fullPath + " file has no contents"));
 	        return Promise.resolve(entry.contents);
+	    };
+	    /**
+	     * File contents by full path, asynchronously.
+	     * @param fullPath
+	     */
+	    VirtualFileSystem.prototype.content = function (fullPath) {
+	        var entry = this.entryByFullPath(fullPath);
+	        if (!entry)
+	            throw new Error(fullPath + " does not exist");
+	        if (entry.isFolder)
+	            throw new Error(fullPath + " is not a file");
+	        if (entry.contents === null)
+	            throw new Error(fullPath + " file has no contents");
+	        return entry.contents;
 	    };
 	    /**
 	     * Check whether the path points to a directory.
@@ -747,6 +788,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (entry.isFolder)
 	            throw new Error(path + " is not a file");
 	        entry.contents = contents;
+	    };
+	    /**
+	     * Exports the whole file system as JSON. Root element has empty text.
+	     */
+	    VirtualFileSystem.prototype.toJSON = function () {
+	        return this.root.toJSON();
 	    };
 	    VirtualFileSystem.prototype.entryByFullPath = function (path) {
 	        var segments = path.split("/");

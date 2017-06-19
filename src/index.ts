@@ -71,3 +71,19 @@ export function init(monacoEngine : typeof monaco) {
         maxMessageLength: 5000
     })
 }
+
+/**
+ * Exports current main file system as JSON.
+ * @returns {FileJSON}
+ */
+export function getFileSystemJSON() : filesystem.FileJSON {
+    return filesystem.getFileSystem().toJSON();
+}
+
+/**
+ * Gets file contents by fulll path
+ * @param fullFilePath
+ */
+export function getFileContents(fullFilePath) : string {
+    return filesystem.getFileSystem().content(fullFilePath)
+}

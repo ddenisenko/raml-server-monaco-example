@@ -87,3 +87,12 @@ export function getFileSystemJSON() : filesystem.FileJSON {
 export function getFileContents(fullFilePath) : string {
     return filesystem.getFileSystem().content(fullFilePath)
 }
+
+/**
+ * Saves file.
+ * @param fullPath
+ * @param contents
+ */
+export function saveFile(fullPath: string, contents: string) {
+    filesystem.getFileSystem().setFileContents(fullPath, contents);
+}

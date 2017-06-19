@@ -125,6 +125,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return filesystem.getFileSystem().content(fullFilePath);
 	}
 	exports.getFileContents = getFileContents;
+	/**
+	 * Saves file.
+	 * @param fullPath
+	 * @param contents
+	 */
+	function saveFile(fullPath, contents) {
+	    filesystem.getFileSystem().setFileContents(fullPath, contents);
+	}
+	exports.saveFile = saveFile;
 	//# sourceMappingURL=index.js.map
 
 /***/ },

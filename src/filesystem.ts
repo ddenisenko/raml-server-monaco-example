@@ -81,6 +81,14 @@ export interface FileSystem {
      * Exports the whole file system as JSON. Root element has empty text.
      */
     toJSON() : FileJSON;
+
+    /**
+     * Sets file contents.
+     * @param path
+     * @param contents
+     * @returns {Promise<any>}
+     */
+    setFileContents(path: string, contents: string) : void;
 }
 
 class FileEntry {

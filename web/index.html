@@ -62,7 +62,7 @@
         <div class="col-md-8">
             <div class="btn-toolbar" role="toolbar" aria-label="Editor toolbar">
                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                    <button type="button" class="btn btn-primary btn-sm">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="save()">
                         <span class="glyphicon glyphicon-floppy-disk"></span> Save
                     </button>
                 </div>
@@ -150,7 +150,8 @@ does not not contain the plugins. -->
         var currentModel = monaco.editor.getModel(modelUri)
         if (currentModel) return currentModel;
 
-        return monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath)
+        var model = monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath)
+        return model;
     }
 
     function getCode(fullFilePath) {
@@ -173,6 +174,18 @@ does not not contain the plugins. -->
 
         var fileSystemJSON = RAML.Editor.getFileSystemJSON();
         return fileSystemJSON.nodes;
+    }
+
+    function save() {
+        if (!editor) return;
+
+        var model = editor.getModel()
+        if (!model) return;
+
+        var fullPath = model.uri.toString();
+        var contents = model.getValue();
+
+        RAML.Editor.saveFile(fullPath, contents)
     }
 </script>
 </body>

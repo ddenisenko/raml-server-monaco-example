@@ -668,7 +668,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var result = {
 	            text: this.name,
 	            selectable: !this.isFolder,
-	            fullPath: this.getFullPath()
+	            fullPath: this.getFullPath(),
+	            icon: this.isFolder ? "glyphicon glyphicon-folder-open" : "glyphicon glyphicon-file"
 	        };
 	        if (this.children && this.children.length > 0) {
 	            result.nodes = this.children.map(function (child) { return child.toJSON(); });

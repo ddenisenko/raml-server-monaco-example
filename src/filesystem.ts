@@ -22,7 +22,13 @@ export interface FileJSON {
      */
     selectable: boolean,
 
-    fullPath: string
+    /**
+     * Node full path.
+     */
+    fullPath: string,
+
+    //TODO move out to the pure UI part
+    icon: string
 }
 
 export interface FileSystem {
@@ -144,7 +150,8 @@ class FileEntry {
         let result : FileJSON = {
             text: this.name,
             selectable: !this.isFolder,
-            fullPath: this.getFullPath()
+            fullPath: this.getFullPath(),
+            icon: this.isFolder?"glyphicon glyphicon-folder-open":"glyphicon glyphicon-file"
         }
 
         if (this.children && this.children.length > 0) {

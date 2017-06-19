@@ -96,3 +96,7 @@ export function getFileContents(fullFilePath) : string {
 export function saveFile(fullPath: string, contents: string) {
     filesystem.getFileSystem().setFileContents(fullPath, contents);
 }
+
+export function newFile(parentFullPath:string, fileName:string) {
+    filesystem.getFileSystem().newFile(parentFullPath, fileName, "");
+}

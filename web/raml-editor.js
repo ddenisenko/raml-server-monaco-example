@@ -134,6 +134,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    filesystem.getFileSystem().setFileContents(fullPath, contents);
 	}
 	exports.saveFile = saveFile;
+	function newFile(parentFullPath, fileName) {
+	    filesystem.getFileSystem().newFile(parentFullPath, fileName, "");
+	}
+	exports.newFile = newFile;
 	//# sourceMappingURL=index.js.map
 
 /***/ },

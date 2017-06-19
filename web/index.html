@@ -47,7 +47,7 @@
         <div class="col-md-4" style="margin-bottom:1em">
             <div class="btn-toolbar" role="toolbar" aria-label="File browser toolbar">
                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                    <button type="button" class="btn btn-primary btn-sm">
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#dlgAddFile">
                         <span class="glyphicon glyphicon-plus"></span> File
                     </button>
                     <button type="button" class="btn btn-primary btn-sm">
@@ -79,6 +79,27 @@
     </div>
 </div>
 
+<div id="dlgAddFile" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">New file</h4>
+            </div>
+            <div class="modal-body">
+                <p>Enter new file name</p>
+                <input id="dlgAddFile_name" type="text" placeholder="File Name" autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="newFile()">Ok</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -87,10 +108,12 @@
 <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">-->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cyborg/bootstrap.min.css"crossorigin="anonymous">
 
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-<script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+
 
 <link href="../node_modules/bootstrap-treeview/dist/bootstrap-treeview.min.css" rel="stylesheet">
 
@@ -112,6 +135,7 @@ does not not contain the plugins. -->
 <script>
 
     var editor = null;
+    var selected = null;
 
     require.config({ paths: { 'vs': '../node_modules/monaco-editor/min/vs' }});
 
@@ -166,6 +190,8 @@ does not not contain the plugins. -->
                 if (model && editor) {
                     editor.setModel(model)
                 }
+
+                selected = data;
             }
         });
     }
@@ -186,6 +212,15 @@ does not not contain the plugins. -->
         var contents = model.getValue();
 
         RAML.Editor.saveFile(fullPath, contents)
+    }
+
+    function newFile() {
+        var parentFullPath = selected?selected.fullPath:null;
+        var newFileName = $('#dlgAddFile_name')[0].value;
+
+        RAML.Editor.newFile(parentFullPath, newFileName);
+
+        refreshTree();
     }
 </script>
 </body>

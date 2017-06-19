@@ -100,3 +100,11 @@ export function saveFile(fullPath: string, contents: string) {
 export function newFile(parentFullPath:string, fileName:string) {
     filesystem.getFileSystem().newFile(parentFullPath, fileName, "");
 }
+
+export function newFolder(parentFullPath:string, fileName:string) {
+    filesystem.getFileSystem().newFolder(parentFullPath, fileName);
+}
+
+export function isDirectory(fullPath:string) : boolean {
+    return filesystem.getFileSystem().isDirectory(fullPath);
+}

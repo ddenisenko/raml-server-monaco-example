@@ -138,6 +138,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    filesystem.getFileSystem().newFile(parentFullPath, fileName, "");
 	}
 	exports.newFile = newFile;
+	function newFolder(parentFullPath, fileName) {
+	    filesystem.getFileSystem().newFolder(parentFullPath, fileName);
+	}
+	exports.newFolder = newFolder;
+	function isDirectory(fullPath) {
+	    return filesystem.getFileSystem().isDirectory(fullPath);
+	}
+	exports.isDirectory = isDirectory;
 	//# sourceMappingURL=index.js.map
 
 /***/ },
@@ -680,7 +688,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    FileEntry.prototype.toJSON = function () {
 	        var result = {
 	            text: this.name,
-	            selectable: !this.isFolder,
 	            fullPath: this.getFullPath(),
 	            icon: this.isFolder ? "glyphicon glyphicon-folder-open" : "glyphicon glyphicon-file"
 	        };
@@ -732,6 +739,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!entry)
 	            return Promise.reject(new Error(path + " does not exist"));
 	        return Promise.resolve(entry.isFolder);
+	    };
+	    /**
+	     * Check whether the path points to a directory.
+	     * @param fullPath
+	     */
+	    VirtualFileSystem.prototype.isDirectory = function (path) {
+	        if (path == null || path == "/")
+	            return true;
+	        var entry = this.entryByFullPath(path);
+	        if (!entry)
+	            throw new Error(path + " does not exist");
+	        return entry.isFolder;
 	    };
 	    /**
 	     * Checks item existance.
@@ -810,6 +829,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return this.root.toJSON();
 	    };
 	    VirtualFileSystem.prototype.entryByFullPath = function (path) {
+	        if (!path)
+	            return null;
 	        var segments = path.split("/");
 	        var currentEntry = this.root;
 	        for (var _i = 0, segments_1 = segments; _i < segments_1.length; _i++) {

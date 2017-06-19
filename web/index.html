@@ -50,7 +50,7 @@
                     <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#dlgAddFile">
                         <span class="glyphicon glyphicon-plus"></span> File
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm">
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#dlgAddFolder">
                         <span class="glyphicon glyphicon-folder-open"></span> Folder
                     </button>
                     <button type="button" class="btn btn-primary btn-sm">
@@ -94,6 +94,28 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal" onclick="newFile()">Ok</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="dlgAddFolder" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">New folder</h4>
+            </div>
+            <div class="modal-body">
+                <p>Enter new file name</p>
+                <input id="dlgAddFolder_name" type="text" placeholder="Folder Name" autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="newFolder()">Ok</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -174,6 +196,8 @@ does not not contain the plugins. -->
         var currentModel = monaco.editor.getModel(modelUri)
         if (currentModel) return currentModel;
 
+        if (RAML.Editor.isDirectory(fullFilePath)) return null;
+
         var model = monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath)
         return model;
     }
@@ -187,7 +211,7 @@ does not not contain the plugins. -->
             data: getTree(),
             onNodeSelected: function(event, data) {
                 var model = getModelForFile(data.fullPath);
-                if (model && editor) {
+                if (editor) {
                     editor.setModel(model)
                 }
 
@@ -219,6 +243,15 @@ does not not contain the plugins. -->
         var newFileName = $('#dlgAddFile_name')[0].value;
 
         RAML.Editor.newFile(parentFullPath, newFileName);
+
+        refreshTree();
+    }
+
+    function newFolder() {
+        var parentFullPath = selected?selected.fullPath:null;
+        var newFileName = $('#dlgAddFolder_name')[0].value;
+
+        RAML.Editor.newFolder(parentFullPath, newFileName);
 
         refreshTree();
     }

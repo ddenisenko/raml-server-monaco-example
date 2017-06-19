@@ -18,11 +18,6 @@ export interface FileJSON {
     nodes?:FileJSON[],
 
     /**
-     * If true, this node is selectable (file).
-     */
-    selectable: boolean,
-
-    /**
      * Node full path.
      */
     fullPath: string,
@@ -64,6 +59,12 @@ export interface FileSystem {
      * @param fullPath
      */
     isDirectoryAsync(path: string): Promise<boolean>;
+
+    /**
+     * Check whether the path points to a directory.
+     * @param fullPath
+     */
+    isDirectory(path: string): boolean;
 
     /**
      * Checks item existance.
@@ -157,7 +158,6 @@ class FileEntry {
     toJSON() : FileJSON {
         let result : FileJSON = {
             text: this.name,
-            selectable: !this.isFolder,
             fullPath: this.getFullPath(),
             icon: this.isFolder?"glyphicon glyphicon-folder-open":"glyphicon glyphicon-file"
         }
@@ -220,6 +220,20 @@ class VirtualFileSystem implements FileSystem {
         if (!entry) return Promise.reject(new Error(path + " does not exist"))
 
         return Promise.resolve(entry.isFolder)
+    }
+
+    /**
+     * Check whether the path points to a directory.
+     * @param fullPath
+     */
+    isDirectory(path: string): boolean {
+        if (path == null || path=="/") return true;
+
+        let entry = this.entryByFullPath(path);
+
+        if (!entry) throw new Error(path + " does not exist")
+
+        return entry.isFolder
     }
 
     /**
@@ -310,6 +324,8 @@ class VirtualFileSystem implements FileSystem {
     }
 
     private entryByFullPath(path : string) : FileEntry {
+        if (!path) return null;
+
         let segments: string[] = path.split("/");
 
         let currentEntry = this.root;

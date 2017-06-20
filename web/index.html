@@ -62,7 +62,7 @@
         <div class="col-md-8">
             <div class="btn-toolbar" role="toolbar" aria-label="Editor toolbar">
                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                    <button type="button" class="btn btn-primary btn-sm" onclick="save()">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="save()" id="editorSaveButton">
                         <span class="glyphicon glyphicon-floppy-disk"></span> Save
                     </button>
                 </div>
@@ -159,6 +159,8 @@ does not not contain the plugins. -->
     var editor = null;
     var selected = null;
 
+    var modelUrlToModified = {}
+
     require.config({ paths: { 'vs': '../node_modules/monaco-editor/min/vs' }});
 
     require(['vs/editor/editor.main'], function() {
@@ -187,6 +189,7 @@ does not not contain the plugins. -->
         });
 
         refreshTree()
+        selectFileOrFolder("/test.raml")
     })
 
     function getModelForFile(fullFilePath) {
@@ -199,7 +202,29 @@ does not not contain the plugins. -->
         if (RAML.Editor.isDirectory(fullFilePath)) return null;
 
         var model = monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath)
+        model.onDidChangeContent(function(event){
+            handleModelChanged(model.uri.toString())
+        })
         return model;
+    }
+
+    function refreshCurrentEditorSaveButton() {
+
+        if (!editor) return;
+
+        var model = editor.getModel();
+        if (!model) return;
+
+        var modelPath = model.uri.toString();
+
+        if (modelUrlToModified[modelPath] === true)$('#editorSaveButton').removeClass("disabled");
+        else $('#editorSaveButton').addClass("disabled");
+    }
+
+    function handleModelChanged(modelPath) {
+        modelUrlToModified[modelPath] = true;
+
+        refreshCurrentEditorSaveButton()
     }
 
     function getCode(fullFilePath) {
@@ -210,14 +235,20 @@ does not not contain the plugins. -->
         $('#tree').treeview({
             data: getTree(),
             onNodeSelected: function(event, data) {
-                var model = getModelForFile(data.fullPath);
-                if (editor) {
-                    editor.setModel(model)
-                }
+                openInEditor(data.fullPath)
 
                 selected = data;
+
+                refreshCurrentEditorSaveButton()
             }
         });
+    }
+
+    function openInEditor(fullPath) {
+        var model = getModelForFile(fullPath);
+        if (editor) {
+            editor.setModel(model)
+        }
     }
 
     function getTree() {
@@ -236,6 +267,10 @@ does not not contain the plugins. -->
         var contents = model.getValue();
 
         RAML.Editor.saveFile(fullPath, contents)
+
+        modelUrlToModified[fullPath] = false;
+
+        refreshCurrentEditorSaveButton()
     }
 
     function newFile() {
@@ -245,6 +280,10 @@ does not not contain the plugins. -->
         RAML.Editor.newFile(parentFullPath, newFileName);
 
         refreshTree();
+
+        var newFullPath = (parentFullPath?parentFullPath:"") + "/" + newFileName
+        selectFileOrFolder(newFullPath)
+        openInEditor(newFullPath)
     }
 
     function newFolder() {
@@ -254,6 +293,41 @@ does not not contain the plugins. -->
         RAML.Editor.newFolder(parentFullPath, newFileName);
 
         refreshTree();
+
+        var newFullPath = (parentFullPath?parentFullPath:"") + "/" + newFileName
+        selectFileOrFolder(newFullPath)
+        openInEditor(newFullPath)
+    }
+
+    function selectFileOrFolder(path) {
+        var tree = $('#tree');
+
+        var segments = path.split("/")
+
+        var fileName = segments[segments.length-1]
+
+        var nodes = tree.treeview('search', [ fileName, {
+            ignoreCase: false,
+            exactMatch: false,
+            revealResults: false,
+        }]);
+        $('#tree').treeview('clearSearch');
+
+
+        var pathNode = null;
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].fullPath == path) {
+                pathNode = nodes[i]
+                break;
+            }
+        }
+
+        if (!pathNode) return;
+
+        tree.treeview('revealNode', [ pathNode, { silent: true } ]);
+        tree.treeview('selectNode', [ pathNode, { silent: true } ]);
+
+        selected = pathNode;
     }
 </script>
 </body>

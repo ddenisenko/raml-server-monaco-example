@@ -90,6 +90,12 @@ export interface FileSystem {
      * @returns {Promise<any>}
      */
     setFileContents(path: string, contents: string) : void;
+
+    /**
+     * Deletes file or folder, including all children.
+     * @param path
+     */
+    remove(path: string);
 }
 
 class FileEntry {
@@ -135,6 +141,8 @@ class FileEntry {
     }
 
     getFullPath() {
+        if (this.isRoot()) return "/";
+
         let segmentEntries : FileEntry[] = []
         let current : FileEntry = this;
         while (current) {
@@ -157,7 +165,7 @@ class FileEntry {
 
     toJSON() : FileJSON {
         let result : FileJSON = {
-            text: this.name,
+            text: this.name?this.name:"",
             fullPath: this.getFullPath(),
             icon: this.isFolder?"glyphicon glyphicon-folder-open":"glyphicon glyphicon-file"
         }
@@ -321,6 +329,22 @@ class VirtualFileSystem implements FileSystem {
      */
     toJSON() : FileJSON {
         return this.root.toJSON();
+    }
+
+    /**
+     * Deletes file or folder, including all children.
+     * @param path
+     */
+    remove(path: string) {
+        let entry = this.entryByFullPath(path);
+        if (entry.isRoot()) return;
+
+        if (!entry) throw new Error(path + " does not exist")
+
+        let index = entry.parent.children.indexOf(entry);
+        if (index > -1) {
+            entry.parent.children.splice(index, 1);
+        }
     }
 
     private entryByFullPath(path : string) : FileEntry {

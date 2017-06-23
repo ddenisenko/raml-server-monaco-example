@@ -8,6 +8,7 @@ import definition = require('./definition')
 import usages = require('./usages')
 import rename = require('./rename')
 import filesystem = require('./filesystem')
+export import ui = require("./ui")
 
 const RAML_LANGUAGE = "RAML"
 
@@ -70,41 +71,4 @@ export function init(monacoEngine : typeof monaco) {
         maxSeverity: null,
         maxMessageLength: 5000
     })
-}
-
-/**
- * Exports current main file system as JSON.
- * @returns {FileJSON}
- */
-export function getFileSystemJSON() : filesystem.FileJSON {
-    return filesystem.getFileSystem().toJSON();
-}
-
-/**
- * Gets file contents by fulll path
- * @param fullFilePath
- */
-export function getFileContents(fullFilePath) : string {
-    return filesystem.getFileSystem().content(fullFilePath)
-}
-
-/**
- * Saves file.
- * @param fullPath
- * @param contents
- */
-export function saveFile(fullPath: string, contents: string) {
-    filesystem.getFileSystem().setFileContents(fullPath, contents);
-}
-
-export function newFile(parentFullPath:string, fileName:string) {
-    filesystem.getFileSystem().newFile(parentFullPath, fileName, "");
-}
-
-export function newFolder(parentFullPath:string, fileName:string) {
-    filesystem.getFileSystem().newFolder(parentFullPath, fileName);
-}
-
-export function isDirectory(fullPath:string) : boolean {
-    return filesystem.getFileSystem().isDirectory(fullPath);
 }

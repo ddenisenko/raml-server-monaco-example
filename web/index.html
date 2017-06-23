@@ -3,38 +3,39 @@
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-    <style>
-        .monaco-editor.vs .token.custom-info {
-            color: grey;
-        }
-        .monaco-editor.vs .token.custom-error {
-            color: red;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        .monaco-editor.vs .token.custom-notice {
-            color: orange;
-        }
-
-        .monaco-editor.vs .token.custom-date {
-            color: green;
-        }
-
-        .monaco-editor.vs .token.custom-notice {
-            color: orange;
-        }
-
-        .monaco-editor.vs .token.RAML.custom-notice {
-            color: orange;
-        }
-
-        .monaco-editor.vs .token.RAML.custom-notice {
-            color: orange;
-        }
-    </style>
 </head>
 <body>
 
+<link rel="stylesheet" href="./index.css">
+
+<!-- jquery -->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cyborg/bootstrap.min.css"crossorigin="anonymous">
+
+<!-- Bootstrap tree view -->
+<link href="../node_modules/bootstrap-treeview/dist/bootstrap-treeview.min.css" rel="stylesheet">
+
+<script src="../node_modules/bootstrap-treeview/dist/bootstrap-treeview.min.js"></script>
+
+<!-- RAML server client module -->
+<script src="../node_modules/raml-language-server-browser/client.bundle.js"></script>
+
+<!-- These dependencies can be added if json and xml validation is required. For now RAML server browser NPM
+does not not contain the plugins. -->
+<!--<script src="../node_modules/raml-language-server-browser/raml-json-validation.js"></script>-->
+<!--<script src="../node_modules/raml-language-server-browser/raml-xml-validation.js"></script>-->
+
+<!-- Web-packaged ui and business logics of the app -->
+<script src="raml-editor.js"></script>
+
+<!-- Monaco -->
+<script src="../docs/loader.js"></script>
 
 
 <div class="container">
@@ -53,7 +54,7 @@
                     <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#dlgAddFolder">
                         <span class="glyphicon glyphicon-folder-open"></span> Folder
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="RAML.Editor.ui.remove()">
                         <span class="glyphicon glyphicon-minus"></span> Delete
                     </button>
                 </div>
@@ -62,7 +63,7 @@
         <div class="col-md-8">
             <div class="btn-toolbar" role="toolbar" aria-label="Editor toolbar">
                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                    <button type="button" class="btn btn-primary btn-sm" onclick="save()" id="editorSaveButton">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="RAML.Editor.ui.save()" id="editorSaveButton">
                         <span class="glyphicon glyphicon-floppy-disk"></span> Save
                     </button>
                 </div>
@@ -93,7 +94,7 @@
                 <input id="dlgAddFile_name" type="text" placeholder="File Name" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="newFile()">Ok</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="RAML.Editor.ui.newFile()">Ok</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -115,7 +116,7 @@
                 <input id="dlgAddFolder_name" type="text" placeholder="Folder Name" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="newFolder()">Ok</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="RAML.Editor.ui.newFolder()">Ok</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -123,43 +124,7 @@
     </div>
 </div>
 
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-<!-- Optional theme -->
-<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">-->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cyborg/bootstrap.min.css"crossorigin="anonymous">
-
-<script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-
-
-<link href="../node_modules/bootstrap-treeview/dist/bootstrap-treeview.min.css" rel="stylesheet">
-
-
-<script src="../node_modules/bootstrap-treeview/dist/bootstrap-treeview.min.js"></script>
-
-<script src="../node_modules/raml-language-server-browser/client.bundle.js"></script>
-
-<!-- These dependencies can be added if json and xml validation is required. For now RAML server browser NPM
-does not not contain the plugins. -->
-<!--<script src="../node_modules/raml-language-server-browser/raml-json-validation.js"></script>-->
-<!--<script src="../node_modules/raml-language-server-browser/raml-xml-validation.js"></script>-->
-
-<script src="raml-editor.js"></script>
-<script src="../docs/loader.js"></script>
-
-
-
 <script>
-
-    var editor = null;
-    var selected = null;
-
-    var modelUrlToModified = {}
 
     require.config({ paths: { 'vs': '../node_modules/monaco-editor/min/vs' }});
 
@@ -180,155 +145,10 @@ does not not contain the plugins. -->
             ]
         });
 
-        var model = getModelForFile("/test.raml")
-        editor = monaco.editor.create(document.getElementById('editorContainer'), {
-            model: model,
-            value: getCode("/test.raml"),
-            language: 'RAML',
-            theme: "myCustomTheme"
-        });
-
-        refreshTree()
-        selectFileOrFolder("/test.raml")
+        RAML.Editor.ui.init()
     })
 
-    function getModelForFile(fullFilePath) {
 
-        var modelUri = monaco.Uri.parse(fullFilePath);
-
-        var currentModel = monaco.editor.getModel(modelUri)
-        if (currentModel) return currentModel;
-
-        if (RAML.Editor.isDirectory(fullFilePath)) return null;
-
-        var model = monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath)
-        model.onDidChangeContent(function(event){
-            handleModelChanged(model.uri.toString())
-        })
-        return model;
-    }
-
-    function refreshCurrentEditorSaveButton() {
-
-        if (!editor) return;
-
-        var model = editor.getModel();
-        if (!model) return;
-
-        var modelPath = model.uri.toString();
-
-        if (modelUrlToModified[modelPath] === true)$('#editorSaveButton').removeClass("disabled");
-        else $('#editorSaveButton').addClass("disabled");
-    }
-
-    function handleModelChanged(modelPath) {
-        modelUrlToModified[modelPath] = true;
-
-        refreshCurrentEditorSaveButton()
-    }
-
-    function getCode(fullFilePath) {
-        return RAML.Editor.getFileContents(fullFilePath)
-    }
-
-    function refreshTree() {
-        $('#tree').treeview({
-            data: getTree(),
-            onNodeSelected: function(event, data) {
-                openInEditor(data.fullPath)
-
-                selected = data;
-
-                refreshCurrentEditorSaveButton()
-            }
-        });
-    }
-
-    function openInEditor(fullPath) {
-        var model = getModelForFile(fullPath);
-        if (editor) {
-            editor.setModel(model)
-        }
-    }
-
-    function getTree() {
-
-        var fileSystemJSON = RAML.Editor.getFileSystemJSON();
-        return fileSystemJSON.nodes;
-    }
-
-    function save() {
-        if (!editor) return;
-
-        var model = editor.getModel()
-        if (!model) return;
-
-        var fullPath = model.uri.toString();
-        var contents = model.getValue();
-
-        RAML.Editor.saveFile(fullPath, contents)
-
-        modelUrlToModified[fullPath] = false;
-
-        refreshCurrentEditorSaveButton()
-    }
-
-    function newFile() {
-        var parentFullPath = selected?selected.fullPath:null;
-        var newFileName = $('#dlgAddFile_name')[0].value;
-
-        RAML.Editor.newFile(parentFullPath, newFileName);
-
-        refreshTree();
-
-        var newFullPath = (parentFullPath?parentFullPath:"") + "/" + newFileName
-        selectFileOrFolder(newFullPath)
-        openInEditor(newFullPath)
-    }
-
-    function newFolder() {
-        var parentFullPath = selected?selected.fullPath:null;
-        var newFileName = $('#dlgAddFolder_name')[0].value;
-
-        RAML.Editor.newFolder(parentFullPath, newFileName);
-
-        refreshTree();
-
-        var newFullPath = (parentFullPath?parentFullPath:"") + "/" + newFileName
-        selectFileOrFolder(newFullPath)
-        openInEditor(newFullPath)
-    }
-
-    function selectFileOrFolder(path) {
-        var tree = $('#tree');
-
-        var segments = path.split("/")
-
-        var fileName = segments[segments.length-1]
-
-        var nodes = tree.treeview('search', [ fileName, {
-            ignoreCase: false,
-            exactMatch: false,
-            revealResults: false,
-        }]);
-        $('#tree').treeview('clearSearch');
-
-
-        var pathNode = null;
-        for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i].fullPath == path) {
-                pathNode = nodes[i]
-                break;
-            }
-        }
-
-        if (!pathNode) return;
-
-        tree.treeview('revealNode', [ pathNode, { silent: true } ]);
-        tree.treeview('selectNode', [ pathNode, { silent: true } ]);
-
-        selected = pathNode;
-    }
 </script>
 </body>
 </html>

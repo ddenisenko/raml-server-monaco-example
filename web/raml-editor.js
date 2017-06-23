@@ -65,6 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var usages = __webpack_require__(6);
 	var rename = __webpack_require__(7);
 	var filesystem = __webpack_require__(8);
+	exports.ui = __webpack_require__(9);
 	var RAML_LANGUAGE = "RAML";
 	function setupGeneralProperties(monacoEngine) {
 	    monacoEngine.languages.setLanguageConfiguration(RAML_LANGUAGE, {
@@ -109,43 +110,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	}
 	exports.init = init;
-	/**
-	 * Exports current main file system as JSON.
-	 * @returns {FileJSON}
-	 */
-	function getFileSystemJSON() {
-	    return filesystem.getFileSystem().toJSON();
-	}
-	exports.getFileSystemJSON = getFileSystemJSON;
-	/**
-	 * Gets file contents by fulll path
-	 * @param fullFilePath
-	 */
-	function getFileContents(fullFilePath) {
-	    return filesystem.getFileSystem().content(fullFilePath);
-	}
-	exports.getFileContents = getFileContents;
-	/**
-	 * Saves file.
-	 * @param fullPath
-	 * @param contents
-	 */
-	function saveFile(fullPath, contents) {
-	    filesystem.getFileSystem().setFileContents(fullPath, contents);
-	}
-	exports.saveFile = saveFile;
-	function newFile(parentFullPath, fileName) {
-	    filesystem.getFileSystem().newFile(parentFullPath, fileName, "");
-	}
-	exports.newFile = newFile;
-	function newFolder(parentFullPath, fileName) {
-	    filesystem.getFileSystem().newFolder(parentFullPath, fileName);
-	}
-	exports.newFolder = newFolder;
-	function isDirectory(fullPath) {
-	    return filesystem.getFileSystem().isDirectory(fullPath);
-	}
-	exports.isDirectory = isDirectory;
 	//# sourceMappingURL=index.js.map
 
 /***/ },
@@ -393,7 +357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var ls = __webpack_require__(9);
+	var ls = __webpack_require__(10);
 	var latestStructure = null;
 	function calculateSymbols(model) {
 	    var uri = model.uri.toString();
@@ -667,6 +631,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return this.parent == null;
 	    };
 	    FileEntry.prototype.getFullPath = function () {
+	        if (this.isRoot())
+	            return "/";
 	        var segmentEntries = [];
 	        var current = this;
 	        while (current) {
@@ -687,9 +653,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	    FileEntry.prototype.toJSON = function () {
 	        var result = {
-	            text: this.name,
+	            text: this.name ? this.name : "",
 	            fullPath: this.getFullPath(),
-	            id: this.getFullPath(),
 	            icon: this.isFolder ? "glyphicon glyphicon-folder-open" : "glyphicon glyphicon-file"
 	        };
 	        if (this.children && this.children.length > 0) {
@@ -829,6 +794,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    VirtualFileSystem.prototype.toJSON = function () {
 	        return this.root.toJSON();
 	    };
+	    /**
+	     * Deletes file or folder, including all children.
+	     * @param path
+	     */
+	    VirtualFileSystem.prototype.remove = function (path) {
+	        var entry = this.entryByFullPath(path);
+	        if (entry.isRoot())
+	            return;
+	        if (!entry)
+	            throw new Error(path + " does not exist");
+	        var index = entry.parent.children.indexOf(entry);
+	        if (index > -1) {
+	            entry.parent.children.splice(index, 1);
+	        }
+	    };
 	    VirtualFileSystem.prototype.entryByFullPath = function (path) {
 	        if (!path)
 	            return null;
@@ -879,9 +859,151 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+	/// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var filesystem = __webpack_require__(8);
+	var editor = null;
+	var selected = null;
+	var modelUrlToModified = {};
+	function init() {
+	    var model = getModelForFile("/test.raml");
+	    editor = monaco.editor.create(document.getElementById('editorContainer'), {
+	        model: model,
+	        value: getCode("/test.raml"),
+	        language: 'RAML',
+	        theme: "myCustomTheme"
+	    });
+	    refreshTree();
+	    selectFileOrFolder("/test.raml");
+	}
+	exports.init = init;
+	function save() {
+	    if (!editor)
+	        return;
+	    var model = editor.getModel();
+	    if (!model)
+	        return;
+	    var fullPath = model.uri.toString();
+	    var contents = model.getValue();
+	    filesystem.getFileSystem().setFileContents(fullPath, contents);
+	    modelUrlToModified[fullPath] = false;
+	    refreshCurrentEditorSaveButton();
+	}
+	exports.save = save;
+	function newFile() {
+	    var parentFullPath = selected ? selected.fullPath : null;
+	    var newFileName = $('#dlgAddFile_name').val();
+	    filesystem.getFileSystem().newFile(parentFullPath, newFileName, "");
+	    refreshTree();
+	    var newFullPath = (parentFullPath ? parentFullPath : "") + "/" + newFileName;
+	    selectFileOrFolder(newFullPath);
+	    openInEditor(newFullPath);
+	}
+	exports.newFile = newFile;
+	function newFolder() {
+	    var parentFullPath = selected ? selected.fullPath : null;
+	    var newFileName = $('#dlgAddFolder_name').val();
+	    filesystem.getFileSystem().newFolder(parentFullPath, newFileName);
+	    refreshTree();
+	    var newFullPath = (parentFullPath ? parentFullPath : "") + "/" + newFileName;
+	    selectFileOrFolder(newFullPath);
+	    openInEditor(newFullPath);
+	}
+	exports.newFolder = newFolder;
+	function remove() {
+	    var fullPath = selected ? selected.fullPath : null;
+	    if (!fullPath)
+	        return;
+	    filesystem.getFileSystem().remove(fullPath);
+	    refreshTree();
+	}
+	exports.remove = remove;
+	function selectFileOrFolder(path) {
+	    var tree = $('#tree');
+	    var segments = path.split("/");
+	    var fileName = segments[segments.length - 1];
+	    var nodes = tree.treeview('search', [fileName, {
+	            ignoreCase: false,
+	            exactMatch: false,
+	            revealResults: false,
+	        }]);
+	    tree.treeview('clearSearch');
+	    var pathNode = null;
+	    for (var i = 0; i < nodes.length; i++) {
+	        if (nodes[i].fullPath == path) {
+	            pathNode = nodes[i];
+	            break;
+	        }
+	    }
+	    if (!pathNode)
+	        return;
+	    tree.treeview('revealNode', [pathNode, { silent: true }]);
+	    tree.treeview('selectNode', [pathNode, { silent: true }]);
+	    selected = pathNode;
+	}
+	exports.selectFileOrFolder = selectFileOrFolder;
+	function getModelForFile(fullFilePath) {
+	    var modelUri = monaco.Uri.parse(fullFilePath);
+	    var currentModel = monaco.editor.getModel(modelUri);
+	    if (currentModel)
+	        return currentModel;
+	    if (filesystem.getFileSystem().isDirectory(fullFilePath))
+	        return null;
+	    var model = monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath);
+	    model.onDidChangeContent(function (event) {
+	        handleModelChanged(model.uri.toString());
+	    });
+	    return model;
+	}
+	function refreshCurrentEditorSaveButton() {
+	    if (!editor)
+	        return;
+	    var model = editor.getModel();
+	    if (!model)
+	        return;
+	    var modelPath = model.uri.toString();
+	    if (modelUrlToModified[modelPath] === true)
+	        $('#editorSaveButton').removeClass("disabled");
+	    else
+	        $('#editorSaveButton').addClass("disabled");
+	}
+	function handleModelChanged(modelPath) {
+	    modelUrlToModified[modelPath] = true;
+	    refreshCurrentEditorSaveButton();
+	}
+	function getCode(fullFilePath) {
+	    return filesystem.getFileSystem().content(fullFilePath);
+	}
+	function refreshTree() {
+	    $('#tree').treeview({
+	        data: getTree(),
+	        onNodeSelected: function (event, data) {
+	            openInEditor(data.fullPath);
+	            selected = data;
+	            refreshCurrentEditorSaveButton();
+	        }
+	    });
+	}
+	function openInEditor(fullPath) {
+	    var model = getModelForFile(fullPath);
+	    if (editor) {
+	        editor.setModel(model);
+	    }
+	}
+	function getTree() {
+	    var fileSystemJSON = filesystem.getFileSystem().toJSON();
+	    return [fileSystemJSON];
+	}
+	//# sourceMappingURL=ui.js.map
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (factory) {
 	    if (typeof module === "object" && typeof module.exports === "object") {
-	        var v = factory(__webpack_require__(10), exports);
+	        var v = factory(__webpack_require__(11), exports);
 	        if (v !== undefined) module.exports = v;
 	    }
 	    else if (true) {
@@ -1787,12 +1909,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./main": 9,
-		"./main.js": 9
+		"./main": 10,
+		"./main.js": 10
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -1800,7 +1922,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function webpackContextResolve(req) {
 		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
 	};
-	webpackContext.id = 10;
+	webpackContext.id = 11;
 	webpackContext.keys = function webpackContextKeys() {
 		return Object.keys(map);
 	};

@@ -32,7 +32,8 @@
     "webpack": "1.4.2",
     "rimraf": "*",
     "vscode-languageserver-types": "^3.0.2-beta.5",
-    "@types/es6-promise": "*"
+    "@types/es6-promise": "*",
+    "@types/jquery": "2.0.47"
   },
   "peerDependencies": {
     "monaco-editor": "^0.8.3"

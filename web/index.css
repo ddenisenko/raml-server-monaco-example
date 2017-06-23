@@ -1,0 +1,27 @@
+.monaco-editor.vs .token.custom-info {
+    color: grey;
+}
+.monaco-editor.vs .token.custom-error {
+    color: red;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.monaco-editor.vs .token.custom-notice {
+    color: orange;
+}
+
+.monaco-editor.vs .token.custom-date {
+    color: green;
+}
+
+.monaco-editor.vs .token.custom-notice {
+    color: orange;
+}
+
+.monaco-editor.vs .token.RAML.custom-notice {
+    color: orange;
+}
+
+.monaco-editor.vs .token.RAML.custom-notice {
+    color: orange;
+}

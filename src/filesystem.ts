@@ -23,9 +23,15 @@ export interface FileJSON {
     fullPath: string,
 
     //TODO move out to the pure UI part
+    /**
+     * Icon name.
+     */
     icon: string
 }
 
+/**
+ * Represents file system instance
+ */
 export interface FileSystem {
     /**
      * Creates new file at the path.
@@ -98,6 +104,9 @@ export interface FileSystem {
     remove(path: string);
 }
 
+/**
+ * Single file or folder entry.
+ */
 class FileEntry {
 
     /**
@@ -178,6 +187,9 @@ class FileEntry {
     }
 }
 
+/**
+ * File system implementation.
+ */
 class VirtualFileSystem implements FileSystem {
 
     private root : FileEntry;
@@ -369,10 +381,19 @@ class VirtualFileSystem implements FileSystem {
 
 let fileSystem = new VirtualFileSystem();
 
+/**
+ * Returns default file system.
+ * @returns {VirtualFileSystem}
+ */
 export function getFileSystem() : FileSystem {
     return fileSystem;
 }
 
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
 
     let fs = getFileSystem();

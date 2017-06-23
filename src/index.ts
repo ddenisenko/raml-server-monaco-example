@@ -8,12 +8,20 @@ import definition = require('./definition')
 import usages = require('./usages')
 import rename = require('./rename')
 import filesystem = require('./filesystem')
+
+/**
+ * Represents editor UI.
+ */
 export import ui = require("./ui")
 
 const RAML_LANGUAGE = "RAML"
 
 declare let RAML : any
 
+/**
+ * Sets up general language properties.
+ * @param monacoEngine
+ */
 function setupGeneralProperties(monacoEngine : typeof monaco){
 
     monacoEngine.languages.setLanguageConfiguration(RAML_LANGUAGE, {
@@ -32,10 +40,18 @@ function setupGeneralProperties(monacoEngine : typeof monaco){
     });
 }
 
+/**
+ * Sets up coloring.
+ * @param monacoEngine
+ */
 function setupColoring(monacoEngine : typeof monaco) {
     monacoEngine.languages.setMonarchTokensProvider(RAML_LANGUAGE, monarch as any);
 }
 
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ */
 export function init(monacoEngine : typeof monaco) {
     if (monacoEngine.languages.getLanguages().some(x => x.id == RAML_LANGUAGE)) return;
 

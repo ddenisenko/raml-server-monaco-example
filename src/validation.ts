@@ -6,29 +6,11 @@ declare let RAML : any
 let modelListeners : {[url:string] : monaco.IDisposable} = {}
 let uriToModel : {[url:string] : monaco.editor.IModel} = {}
 
-
-function newModel(model: monaco.editor.IModel) : void {
-
-    let uri = model.uri.toString()
-    uriToModel[uri] = model;
-
-    RAML.Server.getConnection().documentOpened({
-        uri: uri,
-        text: model.getValue()
-    })
-}
-
-function modelChanged(model: monaco.editor.IModel) : void {
-
-    let uri = model.uri.toString()
-    uriToModel[uri] = model;
-
-    RAML.Server.getConnection().documentChanged({
-        uri: uri,
-        text: model.getValue()
-    })
-}
-
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
 
     monacoEngine.editor.onDidCreateModel((model: monaco.editor.IModel) => {
@@ -77,5 +59,35 @@ export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
         });
 
         monaco.editor.setModelMarkers(model, languageIdentifier, markers);
+    })
+}
+
+/**
+ * Handles new model event
+ * @param model
+ */
+function newModel(model: monaco.editor.IModel) : void {
+
+    let uri = model.uri.toString()
+    uriToModel[uri] = model;
+
+    RAML.Server.getConnection().documentOpened({
+        uri: uri,
+        text: model.getValue()
+    })
+}
+
+/**
+ * Handles model changed event.
+ * @param model
+ */
+function modelChanged(model: monaco.editor.IModel) : void {
+
+    let uri = model.uri.toString()
+    uriToModel[uri] = model;
+
+    RAML.Server.getConnection().documentChanged({
+        uri: uri,
+        text: model.getValue()
     })
 }

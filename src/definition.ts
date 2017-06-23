@@ -4,6 +4,11 @@ declare let RAML : any
 
 import * as ls from 'vscode-languageserver-types';
 
+/**
+ * Calculates definition.
+ * @param model
+ * @param position
+ */
 function calculateDefinition(model : monaco.editor.IReadOnlyModel, position: monaco.Position) :
     monaco.Thenable<monaco.languages.Location> {
 
@@ -31,6 +36,11 @@ function calculateDefinition(model : monaco.editor.IReadOnlyModel, position: mon
     })
 }
 
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
     monacoEngine.languages.registerDefinitionProvider(languageIdentifier, {
         provideDefinition: function(

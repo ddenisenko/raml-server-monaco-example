@@ -6,6 +6,11 @@ import * as ls from 'vscode-languageserver-types';
 
 var latestStructure = null;
 
+/**
+ * Calculates file symbols.
+ * @param model
+ * @returns {Array}
+ */
 function calculateSymbols(model : monaco.editor.IReadOnlyModel) {
 
     let uri = model.uri.toString()
@@ -55,49 +60,13 @@ function calculateSymbols(model : monaco.editor.IReadOnlyModel) {
 
         return result;
     }
-    // return RAML.Server.getConnection().getStructure(uri).then(structure=>{
-    //     console.log("HERE2")
-    //     var result = [];
-    //     for (let categoryName in structure) {
-    //         let vsKind : ls.SymbolKind = null;
-    //
-    //         if ("Resources" == categoryName) {
-    //             vsKind = ls.SymbolKind.Function
-    //         } else if ("Resource Types & Traits" == categoryName) {
-    //             vsKind = ls.SymbolKind.Interface;
-    //         } else if ("Schemas & Types" == categoryName) {
-    //             vsKind = ls.SymbolKind.Class;
-    //         } else if ("Other" == categoryName) {
-    //             vsKind = ls.SymbolKind.Constant;
-    //         }
-    //
-    //         let topLevelNode = structure[categoryName];
-    //         let items = topLevelNode.children;
-    //         if (items) {
-    //             result = result.concat(items.map(item=>{
-    //                 let start = model.getPositionAt(item.start)
-    //                 let end = model.getPositionAt(item.end)
-    //
-    //                 let symbolInfo = {
-    //                     name: item.text,
-    //                     kind: vsKind,
-    //                     location: {
-    //                         uri: uri,
-    //                         range: {
-    //                             start: start,
-    //                             end: end
-    //                         }
-    //                     }
-    //                 }
-    //                 return symbolInfo;
-    //             }));
-    //         }
-    //     }
-    //
-    //     return result;
-    // })
 }
 
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
 
     RAML.Server.getConnection().onStructureReport(report=>{

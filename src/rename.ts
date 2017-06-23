@@ -4,6 +4,12 @@ declare let RAML : any
 
 import * as ls from 'vscode-languageserver-types';
 
+/**
+ * Renames element at the curstor position.
+ * @param model
+ * @param position
+ * @param newName
+ */
 function rename(model : monaco.editor.IReadOnlyModel, position: monaco.Position,
     newName : string) : monaco.Thenable<monaco.languages.WorkspaceEdit> {
 
@@ -66,6 +72,11 @@ function rename(model : monaco.editor.IReadOnlyModel, position: monaco.Position,
     })
 }
 
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
     monacoEngine.languages.registerRenameProvider(languageIdentifier, {
         provideRenameEdits: function(

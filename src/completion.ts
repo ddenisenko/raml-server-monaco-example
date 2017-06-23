@@ -2,6 +2,11 @@
 
 declare let RAML : any
 
+/**
+ * Removes indentation being automatically added from the previous line
+ * @param originalText
+ * @returns {string}
+ */
 function removeCompletionPreviousLineIndentation(originalText: string) {
     let lastNewLineIndex = originalText.lastIndexOf("\n");
     if (lastNewLineIndex == -1 || lastNewLineIndex == originalText.length-1) return originalText;
@@ -12,6 +17,11 @@ function removeCompletionPreviousLineIndentation(originalText: string) {
     return originalText.substring(0, lastNewLineIndex+1) + "  ";
 }
 
+/**
+ * Calculates completion proposals.
+ * @param model
+ * @param position
+ */
 function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position : monaco.IPosition) {
     let uri = model.uri.toString()
 
@@ -36,6 +46,11 @@ function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position
     })
 }
 
+/**
+ * Initializes module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
 
     monacoEngine.languages.registerCompletionItemProvider(languageIdentifier, {

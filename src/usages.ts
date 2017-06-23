@@ -4,6 +4,11 @@ declare let RAML : any
 
 import * as ls from 'vscode-languageserver-types';
 
+/**
+ * Calculates usages by position.
+ * @param model
+ * @param position
+ */
 function calculateUsages(model : monaco.editor.IReadOnlyModel, position: monaco.Position) :
     monaco.Thenable<monaco.languages.Location[]> {
 
@@ -35,6 +40,11 @@ function calculateUsages(model : monaco.editor.IReadOnlyModel, position: monaco.
     })
 }
 
+/**
+ * Initializes the module.
+ * @param monacoEngine
+ * @param languageIdentifier
+ */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
     monacoEngine.languages.registerReferenceProvider(languageIdentifier, {
         provideReferences: function(

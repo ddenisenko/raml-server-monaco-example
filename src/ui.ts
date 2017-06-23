@@ -7,6 +7,9 @@ var selected = null;
 
 var modelUrlToModified = {}
 
+/**
+ * Initializes the module.
+ */
 export function init() {
     var model = getModelForFile("/test.raml")
     editor = monaco.editor.create(document.getElementById('editorContainer'), {
@@ -20,6 +23,9 @@ export function init() {
     selectFileOrFolder("/test.raml")
 }
 
+/**
+ * Save current file.
+ */
 export function save() {
     if (!editor) return;
 
@@ -36,6 +42,9 @@ export function save() {
     refreshCurrentEditorSaveButton()
 }
 
+/**
+ * Creates new file.
+ */
 export function newFile() {
     var parentFullPath = selected?selected.fullPath:null;
     var newFileName = $('#dlgAddFile_name').val();
@@ -49,6 +58,9 @@ export function newFile() {
     openInEditor(newFullPath)
 }
 
+/**
+ * Creates new folder
+ */
 export function newFolder() {
     var parentFullPath = selected?selected.fullPath:null;
     var newFileName = $('#dlgAddFolder_name').val();
@@ -62,6 +74,9 @@ export function newFolder() {
     openInEditor(newFullPath)
 }
 
+/**
+ * Removes selected file or folder.
+ */
 export function remove() {
     var fullPath = selected?selected.fullPath:null;
     if (!fullPath) return;
@@ -70,6 +85,10 @@ export function remove() {
     refreshTree();
 }
 
+/**
+ * Selects file or folder by path.
+ * @param path
+ */
 export function selectFileOrFolder(path) {
     var tree : any = $('#tree');
 
@@ -101,6 +120,11 @@ export function selectFileOrFolder(path) {
     selected = pathNode;
 }
 
+/**
+ * Gets model entity by the path
+ * @param fullFilePath
+ * @returns {any}
+ */
 function getModelForFile(fullFilePath) {
 
     var modelUri = monaco.Uri.parse(fullFilePath);
@@ -117,6 +141,9 @@ function getModelForFile(fullFilePath) {
     return model;
 }
 
+/**
+ * Refreshes "Save" button enabled/disabled state.
+ */
 function refreshCurrentEditorSaveButton() {
 
     if (!editor) return;
@@ -130,16 +157,28 @@ function refreshCurrentEditorSaveButton() {
     else $('#editorSaveButton').addClass("disabled");
 }
 
+/**
+ * Handles model change event
+ * @param modelPath
+ */
 function handleModelChanged(modelPath) {
     modelUrlToModified[modelPath] = true;
 
     refreshCurrentEditorSaveButton()
 }
 
+/**
+ * Gets RAML code for the file
+ * @param fullFilePath
+ * @returns {string}
+ */
 function getCode(fullFilePath) {
     return filesystem.getFileSystem().content(fullFilePath)
 }
 
+/**
+ * Refreshes file browser UI from the current file system model
+ */
 function refreshTree() {
     (<any>$('#tree')).treeview({
         data: getTree(),
@@ -153,6 +192,10 @@ function refreshTree() {
     });
 }
 
+/**
+ * Opens file in the editor.
+ * @param fullPath
+ */
 function openInEditor(fullPath) {
     var model = getModelForFile(fullPath);
     if (editor) {
@@ -160,6 +203,10 @@ function openInEditor(fullPath) {
     }
 }
 
+/**
+ * Gets FS model.
+ * @returns {[FileJSON]}
+ */
 function getTree() {
 
     var fileSystemJSON = filesystem.getFileSystem().toJSON();

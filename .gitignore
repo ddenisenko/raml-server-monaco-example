@@ -17,6 +17,9 @@ npm-debug.log
 /src/**/*.d.ts
 
 /typings/
+/docs
+/web/resources
+/gh-pages
 
 /dist/
 

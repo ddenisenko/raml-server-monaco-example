@@ -4,8 +4,9 @@
   "description": "Example client for RAML Server",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "rimraf dist && tsc && webpack --progress --config webpack.config.js && cp -r node_modules/monaco-editor/min/vs docs",
-    "run" : "npm run build && node_modules/.bin/http-server -c-1 ./ -p 8888"
+    "build": "rimraf dist && tsc && webpack --progress --config webpack.config.js && cp -r node_modules/monaco-editor/min web/resources && cp -r node_modules/bootstrap-treeview/dist/* web/resources  && cp -r node_modules/raml-language-server-browser web/resources",
+    "run" : "npm run build && node_modules/.bin/http-server -c-1 ./ -p 8888",
+    "publish_web" : "rimraf gh-pages && npm run build && mkdir gh-pages && cd gh-pages && git clone https://github.com/ddenisenko/raml-server-monaco-example.git --branch gh-pages --single-branch . && find . ! -name '.git' ! -name '.' ! -name '..' -maxdepth 1 -exec rm -rf {} + && cp -r ../web/* . && git add -A && git commit -m 'Updating web version' && git push"
   },
   "repository": {
     "type": "git",

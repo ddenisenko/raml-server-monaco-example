@@ -1,0 +1,31 @@
+{
+  "version": "0.0.2",
+  "name": "raml-language-server-browser",
+  "main": "client.bundle.js",
+  "_id": "raml-language-server-browser@0.0.2",
+  "scripts": {},
+  "_shasum": "6c55468bc1dbd65d18d7e9b87f88937a3361d865",
+  "_from": "raml-language-server-browser@0.0.2",
+  "_npmVersion": "2.14.4",
+  "_nodeVersion": "4.1.1",
+  "_npmUser": {
+    "name": "denis.denisenko",
+    "email": "denis@onpositive.com"
+  },
+  "dist": {
+    "shasum": "6c55468bc1dbd65d18d7e9b87f88937a3361d865",
+    "tarball": "https://registry.npmjs.org/raml-language-server-browser/-/raml-language-server-browser-0.0.2.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "denis.denisenko",
+      "email": "denis@onpositive.com"
+    }
+  ],
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/raml-language-server-browser-0.0.2.tgz_1495390438085_0.8565668046940118"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/raml-language-server-browser/-/raml-language-server-browser-0.0.2.tgz"
+}

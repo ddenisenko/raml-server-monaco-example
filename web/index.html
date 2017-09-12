@@ -35,7 +35,7 @@ does not not contain the plugins. -->
 <script src="./resources/raml-editor.js"></script>
 
 <!-- Monaco -->
-<script src="./resources/vs/loader.js"></script>
+<script src="./resources/min/vs/loader.js"></script>
 
 
 <div class="container">
@@ -126,7 +126,7 @@ does not not contain the plugins. -->
 
 <script>
 
-    require.config({ paths: { 'vs': './resources/vs' }});
+    require.config({ paths: { 'vs': './resources/min/vs' }});
 
     require(['vs/editor/editor.main'], function() {
         RAML.Editor.init(monaco);

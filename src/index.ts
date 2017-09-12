@@ -63,7 +63,7 @@ export function init(monacoEngine : typeof monaco) {
 
     setupColoring(monacoEngine)
 
-    RAML.Server.launch("../node_modules/raml-language-server-browser/worker.bundle.js")
+    RAML.Server.launch("resources/raml-language-server-browser/worker.bundle.js")
 
     filesystem.init(monacoEngine, RAML_LANGUAGE)
 

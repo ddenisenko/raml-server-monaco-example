@@ -1,6 +1,11 @@
 /// <reference path="../node_modules/monaco-editor/monaco.d.ts" />
-
 import filesystem = require("./filesystem")
+import IEditorConstructionOptions = monaco.editor.IEditorConstructionOptions;
+
+import actions = require("./actions");
+import ICursorPositionChangedEvent = monaco.editor.ICursorPositionChangedEvent;
+
+declare var RAML : any
 
 var editor = null;
 var selected = null;
@@ -12,12 +17,27 @@ var modelUrlToModified = {}
  */
 export function init() {
     var model = getModelForFile("/test.raml")
-    editor = monaco.editor.create(document.getElementById('editorContainer'), {
+    
+    var options: IEditorConstructionOptions = {
         model: model,
         value: getCode("/test.raml"),
         language: 'RAML',
         theme: "myCustomTheme"
-    });
+    }
+    
+    editor = monaco.editor.create(document.getElementById('editorContainer'), options);
+
+    editor.onDidChangeCursorPosition((event: ICursorPositionChangedEvent) => {
+        var uri = editor.getModel().uri.toString();
+
+        var position = editor.getPosition();
+        
+        var offset = editor.getModel().getOffsetAt(position);
+
+        RAML.Server.getConnection().positionChanged(uri, offset);
+    })
+
+    actions.bindActions(editor);
 
     refreshTree()
     selectFileOrFolder("/test.raml")
@@ -46,7 +66,7 @@ export function save() {
  * Creates new file.
  */
 export function newFile() {
-    var parentFullPath = selected?selected.fullPath:null;
+    var parentFullPath = selected ? selected.fullPath : null;
     var newFileName = $('#dlgAddFile_name').val();
 
     filesystem.getFileSystem().newFile(parentFullPath, newFileName, "");

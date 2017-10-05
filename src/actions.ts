@@ -129,9 +129,10 @@ function createOperation(textEdit: any, model: IModel): IIdentifiedSingleEditOpe
 }
 
 function modelChanged(model: IModel) : void {
-    let uri = model.uri.toString()
-    // RAML.Server.getConnection().documentChanged({
-    //     uri: uri,
-    //     text: model.getValue()
-    // })
+    let uri = model.uri.toString();
+    
+    RAML.Server.getConnection().documentChanged({
+        uri: uri,
+        text: model.getValue()
+    })
 }

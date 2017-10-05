@@ -65,6 +65,18 @@ export function init(monacoEngine : typeof monaco) {
 
     RAML.Server.launch("resources/raml-language-server-browser/worker.bundle.js")
 
+    RAML.Server.getConnection().setServerConfiguration({
+        actionsConfiguration: {
+            enableUIActions: false
+        },
+
+        modulesConfiguration: {
+            enableDetailsModule: false,
+
+            enableCustomActionsModule: true
+        }
+    });
+
     filesystem.init(monacoEngine, RAML_LANGUAGE)
 
     validation.init(monacoEngine, RAML_LANGUAGE)

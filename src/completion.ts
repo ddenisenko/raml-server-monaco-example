@@ -35,11 +35,19 @@ function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position
             let text = suggestion.text || suggestion.displayText;
 
             text = removeCompletionPreviousLineIndentation(text);
-
-            result.push({
+            
+            var prepared: any = {
                 label: text,
-                kind:  monaco.languages.CompletionItemKind.Text
-            })
+                kind:  suggestion.snippet ? monaco.languages.CompletionItemKind.Text : monaco.languages.CompletionItemKind.Text,
+            };
+            
+            if(suggestion.snippet) {
+                prepared.insertText = {
+                    value: suggestion.snippet
+                }
+            }
+
+            result.push(prepared);
         }
 
         return result;

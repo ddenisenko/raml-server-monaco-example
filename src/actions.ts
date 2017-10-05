@@ -9,18 +9,28 @@ import IModel = monaco.editor.IModel;
 declare var RAML: any;
 
 class ActionsManager {
-    private contextKeys: IContextKey<boolean>[] = [];
-    
-    constructor(private editor: IStandaloneCodeEditor) {
+    private contextKeys: {[id: string]: IContextKey<boolean>} = {};
 
+    constructor(private editor: IStandaloneCodeEditor) {
+        editor.onDidChangeCursorPosition((event) => {
+            var model = editor.getModel();
+
+            var offset = model.getOffsetAt(event.position);
+
+            Object.keys(this.contextKeys).forEach(keyId => this.contextKeys[keyId].set(false));
+            
+            modelChanged(model);
+
+            RAML.Server.getConnection().calculateEditorContextActions(model.uri, offset).then(actions => {
+                actions.forEach(action => this.contextKeys[action.id] && this.contextKeys[action.id].set(true));
+            });
+        })
     }
 
     registerActions(): void {
         RAML.Server.getConnection().allAvailableActions().then(serverActions => {
             serverActions.forEach(serverAction => {
-                var contextKey = this.editor.createContextKey(descriptorConditionId(serverAction.id), true);
-
-                this.contextKeys.push(contextKey);
+                this.contextKeys[serverAction.id] = this.editor.createContextKey(descriptorConditionId(serverAction.id), true);
                 
                 var actionDescriptor = createActionDescriptor(serverAction);
 
@@ -64,7 +74,7 @@ function createActionDescriptor(serverAction: any): IActionDescriptor {
 
             var offset = model.getOffsetAt(position);
             
-            var changes = RAML.Server.getConnection().executeContextAction(documentUri, serverAction, offset)
+            var changes = RAML.Server.getConnection().executeContextAction(documentUri, serverAction, offset);
             
             changes.then((changes: any[]) => {
                 if(!changes) {
@@ -78,8 +88,8 @@ function createActionDescriptor(serverAction: any): IActionDescriptor {
 
                     operations = operations.concat(toAdd);
                 });
-                
-                editor.executeEdits(serverAction.id, operations);
+
+                operations.forEach(operation => editor.executeEdits(serverAction.id, [operation]));
             })
         }
     }
@@ -105,7 +115,7 @@ function createOperations(changedDocument: any, model: IModel): IIdentifiedSingl
 
 function createOperation(textEdit: any, model: IModel): IIdentifiedSingleEditOperation {
     var start = model.getPositionAt(textEdit.range.start);
-    var end = model.getPositionAt(textEdit.range.start);
+    var end = model.getPositionAt(textEdit.range.end);
 
     return {
         identifier: {major: 1, minor: 1},
@@ -116,4 +126,12 @@ function createOperation(textEdit: any, model: IModel): IIdentifiedSingleEditOpe
 
         forceMoveMarkers: true
     }
+}
+
+function modelChanged(model: IModel) : void {
+    let uri = model.uri.toString()
+    // RAML.Server.getConnection().documentChanged({
+    //     uri: uri,
+    //     text: model.getValue()
+    // })
 }

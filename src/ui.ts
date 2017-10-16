@@ -4,6 +4,7 @@ import IEditorConstructionOptions = monaco.editor.IEditorConstructionOptions;
 
 import actions = require("./actions");
 import ICursorPositionChangedEvent = monaco.editor.ICursorPositionChangedEvent;
+import IEditorOverrideServices = monaco.editor.IEditorOverrideServices;
 
 declare var RAML : any
 
@@ -24,7 +25,7 @@ export function init() {
         language: 'RAML',
         theme: "myCustomTheme"
     }
-    
+
     editor = monaco.editor.create(document.getElementById('editorContainer'), options);
 
     editor.onDidChangeCursorPosition((event: ICursorPositionChangedEvent) => {
@@ -216,7 +217,7 @@ function refreshTree() {
  * Opens file in the editor.
  * @param fullPath
  */
-function openInEditor(fullPath) {
+export function openInEditor(fullPath) {
     var model = getModelForFile(fullPath);
     if (editor) {
         editor.setModel(model)

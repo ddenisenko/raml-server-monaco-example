@@ -2,6 +2,8 @@
 
 declare let RAML : any
 
+import ui = require('./ui');
+
 import * as ls from 'vscode-languageserver-types';
 
 /**
@@ -21,11 +23,14 @@ function calculateDefinition(model : monaco.editor.IReadOnlyModel, position: mon
 
         let location = locations[0];
         
-        let start = model.getPositionAt(location.range.start)
-        let end = model.getPositionAt(location.range.end)
+        let start = model.getPositionAt(location.range.start);
+        let end = model.getPositionAt(location.range.end);
 
+        ui.selectFileOrFolder(location.uri);
+        ui.openInEditor(location.uri);
+        
         return {
-            uri: model.uri,
+            uri: monaco.Uri.parse(location.uri),
             range: {
                 startLineNumber: start.lineNumber,
                 startColumn: start.column,
@@ -43,11 +48,8 @@ function calculateDefinition(model : monaco.editor.IReadOnlyModel, position: mon
  */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
     monacoEngine.languages.registerDefinitionProvider(languageIdentifier, {
-        provideDefinition: function(
-            model: monaco.editor.IReadOnlyModel, position: monaco.Position,
-            token: monaco.CancellationToken) {
-
-            return calculateDefinition(model, position)
+        provideDefinition: function(model: monaco.editor.IReadOnlyModel, position: monaco.Position, token: monaco.CancellationToken) {
+            return calculateDefinition(model, position);
         }
     });
 

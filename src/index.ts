@@ -71,7 +71,7 @@ export function init(monacoEngine : typeof monaco) {
         },
 
         modulesConfiguration: {
-            enableDetailsModule: false,
+            enableDetailsModule: true,
 
             enableCustomActionsModule: true
         }

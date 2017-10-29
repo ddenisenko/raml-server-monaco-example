@@ -6,6 +6,12 @@ import actions = require("./actions");
 import ICursorPositionChangedEvent = monaco.editor.ICursorPositionChangedEvent;
 import IEditorOverrideServices = monaco.editor.IEditorOverrideServices;
 
+import editorTools = require('./editor-tools/editor-tools');
+
+import editorConverter = require('./editor-tools/editorConverter');
+
+import {atom} from "atom-web-ui";
+
 declare var RAML : any
 
 var editor = null;
@@ -25,7 +31,7 @@ export function init() {
         language: 'RAML',
         theme: "myCustomTheme"
     }
-
+    
     editor = monaco.editor.create(document.getElementById('editorContainer'), options);
 
     editor.onDidChangeCursorPosition((event: ICursorPositionChangedEvent) => {
@@ -40,8 +46,10 @@ export function init() {
 
     actions.bindActions(editor);
 
-    refreshTree()
+    refreshTree();
     selectFileOrFolder("/test.raml")
+
+    editorTools.initEditorTools(editor, true);
 }
 
 /**
@@ -220,7 +228,11 @@ function refreshTree() {
 export function openInEditor(fullPath) {
     var model = getModelForFile(fullPath);
     if (editor) {
-        editor.setModel(model)
+        editor.setModel(model);
+        
+        atom.workspace.setActiveTextEditor(editorConverter.fromMonacoEditor(editor));
+
+        atom.workspace.doUpdate();
     }
 }
 

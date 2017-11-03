@@ -44,7 +44,7 @@ export const monarch = {
             [/@numberDate(?![ \t]*\S+)/,     'number.date'],
 
             ['@resource', 'raml-resource'],
-            ['@key', {cases: {'(get|post|put|delete|options|head|connect|trace)(:)( |$)': 'raml-method','@default': 'raml-key'}}],
+            ['@key', {cases: {'(get|post|put|delete|options|head|connect|trace|patch)(:)( |$)': 'raml-method','@default': 'raml-key'}}],
 
             {include: '@flowScalars'},
 

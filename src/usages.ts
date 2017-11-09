@@ -22,18 +22,18 @@ function calculateUsages(model : monaco.editor.IReadOnlyModel, position: monaco.
         if (!locations || locations.length < 1) return result;
 
         for (let location of locations) {
-            let start = model.getPositionAt(location.range.start)
-            let end = model.getPositionAt(location.range.end)
-
+            let start = model.getPositionAt(location.range.start);
+            let end = model.getPositionAt(location.range.end);
+            
             result.push({
-                uri: model.uri,
+                uri: monaco.Uri.parse(location.uri),
                 range: {
                     startLineNumber: start.lineNumber,
                     startColumn: start.column,
                     endLineNumber: end.lineNumber,
                     endColumn: end.column
                 }
-            })
+            });
         }
 
         return result;

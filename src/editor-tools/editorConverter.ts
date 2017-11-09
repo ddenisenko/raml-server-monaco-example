@@ -30,7 +30,11 @@ export function fromMonacoEditor(editor: monaco.editor.ICommonCodeEditor): atom.
 
         pane: {},
 
-        setSelectedBufferRange: () => null
+        setSelectedBufferRange: (data) => {
+            var range = new monaco.Range(data.start.row, data.start.column, data.end.row, data.end.column);
+            
+            editor.setSelection(range);
+        }
     };
     
     return result;

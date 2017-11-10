@@ -405,7 +405,7 @@ var manager: EditorManager;
 
 export function initEditorTools(editor: ICommonCodeEditor, display: boolean = true) {
     if(!manager) {
-        var workspace = atom.getWorkspace("outline-container");
+        var workspace = atom.getWorkspace('outline-container', 'modal-panel-external');
 
         workspace.setActiveTextEditor(converter.fromMonacoEditor(editor));
 

@@ -8,6 +8,7 @@ import definition = require('./definition')
 import usages = require('./usages')
 import rename = require('./rename')
 import filesystem = require('./filesystem')
+import uiDisplay = require('./uiDisplay')
 
 /**
  * Represents editor UI.
@@ -67,7 +68,7 @@ export function init(monacoEngine : typeof monaco) {
 
     RAML.Server.getConnection().setServerConfiguration({
         actionsConfiguration: {
-            enableUIActions: false
+            enableUIActions: true
         },
 
         modulesConfiguration: {
@@ -77,19 +78,21 @@ export function init(monacoEngine : typeof monaco) {
         }
     });
 
-    filesystem.init(monacoEngine, RAML_LANGUAGE)
+    uiDisplay.init();
 
-    validation.init(monacoEngine, RAML_LANGUAGE)
+    filesystem.init(monacoEngine, RAML_LANGUAGE);
 
-    completion.init(monacoEngine, RAML_LANGUAGE)
+    validation.init(monacoEngine, RAML_LANGUAGE);
 
-    symbols.init(monacoEngine, RAML_LANGUAGE)
+    completion.init(monacoEngine, RAML_LANGUAGE);
 
-    definition.init(monacoEngine, RAML_LANGUAGE)
+    symbols.init(monacoEngine, RAML_LANGUAGE);
 
-    usages.init(monacoEngine, RAML_LANGUAGE)
+    definition.init(monacoEngine, RAML_LANGUAGE);
 
-    rename.init(monacoEngine, RAML_LANGUAGE)
+    usages.init(monacoEngine, RAML_LANGUAGE);
+
+    rename.init(monacoEngine, RAML_LANGUAGE);
 
     RAML.Server.getConnection().setLoggerConfiguration({
         allowedComponents: [

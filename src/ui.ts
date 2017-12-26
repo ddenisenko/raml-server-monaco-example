@@ -166,6 +166,9 @@ function getModelForFile(fullFilePath) {
     if (filesystem.getFileSystem().isDirectory(fullFilePath)) return null;
 
     var model = monaco.editor.createModel(getCode(fullFilePath), 'RAML', fullFilePath)
+
+    model.updateOptions({tabSize: 2});
+    
     model.onDidChangeContent(function(event){
         handleModelChanged(model.uri.toString())
     })

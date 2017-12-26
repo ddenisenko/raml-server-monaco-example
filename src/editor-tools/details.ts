@@ -2,6 +2,9 @@ import {atomUiLib as UI, atom} from "atom-web-ui";
 
 import detailElements = require("./detailElements");
 
+
+const a = "asdfasd";
+
 export var nodes={
     Api:{
         properties:["title","version","baseUri","mediaType","protocols"],
@@ -33,7 +36,9 @@ var focusedPosition: number = -1;
 var toFocus : UI.TextField = null;
 
 export var oldItem;
-export function updateDetailsPanel(detailsNode: any, panel: UI.Panel, updateTextOnDone: boolean = false) {
+export function updateDetailsPanel(detailsReport: any,
+                                   context: detailElements.DetailsContext, panel: UI.Panel,
+                                   updateTextOnDone: boolean = false) {
     panel.clear();
     var cfg=(<any>atom).config
     var l=(<any>atom).styles.emitter.handlersByEventName;
@@ -48,7 +53,10 @@ export function updateDetailsPanel(detailsNode: any, panel: UI.Panel, updateText
     try {
         var empty = true;
 
-        var item = detailElements.buildItem(detailsNode, false);
+        var item = detailElements.buildItem(detailsReport, context, false);
+        // item.addListener(x=> {
+        //     editorTools.aquireManager().updateText(null);
+        // })
         var rend;
         try {
             rend = item.render({});

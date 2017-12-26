@@ -1,16 +1,102 @@
 import _ = require("underscore");
 import {atomUiLib as UI} from "atom-web-ui";
+import assistUtils = require("./assist-utils");
 
-var lastSelectedCaption: string;
-var inRender:boolean= false;
+import {
+    Runnable,
+    Reconciler
+} from "./reconciler"
 
-export interface RenderingOptions {
+declare var RAML;
+
+var lastSelectedCaption:string;
+var inRender:boolean=false;
+
+interface RenderingOptions{
     showDescription?:boolean;
     showHeader?:boolean;
     collapsible?:boolean;
 }
 
-export abstract class Item {
+export interface DetailsContext {
+    uri: string,
+    position: number,
+    reconciler: Reconciler,
+    localModel: any
+}
+
+/**
+ * Runnable that updates details values remotely
+ */
+class UpdateModelRunnable {
+
+    private cancelled = false;
+
+    constructor(private context: DetailsContext, private item: any,
+                private newValue: string| number| boolean) {
+
+    }
+
+    /**
+     * Performs the actual business logics.
+     * Should resolve the promise when finished.
+     */
+    run(): Promise<any> {
+        if(this.context.localModel) {
+            this.context.localModel[this.item.id] = this.newValue;
+
+            return Promise.resolve();
+        }
+        
+        const connection = RAML.Server.getConnection();
+
+        return connection.changeDetailValue(this.context.uri, this.context.position,
+            this.item.id, this.newValue);
+    }
+
+    /**
+     * Whether two runnable conflict with each other.
+     * Must work fast as its called often.
+     * @param other
+     */
+    conflicts(other: any): boolean {
+        if (isUpdateModelRunnable(other)) {
+            return this.getUri() === other.getUri();
+        }
+
+        return false;
+    }
+
+    /**
+     * Cancels the runnable. run() method should do nothing if launched later,
+     * if cancel is called during the run() method execution, run() should stop as soon as it can.
+     */
+    cancel(): void {
+        this.cancelled = true;
+    }
+
+    /**
+     * Whether cancel() method was called at least once.
+     */
+    isCanceled(): boolean {
+        return this.cancelled;
+    }
+
+    getUri() {
+        return this.context.uri;
+    }
+}
+
+/**
+ * Instanceof for UpdateModelRunnable
+ * @param runnable
+ */
+function isUpdateModelRunnable(runnable: any) : runnable is UpdateModelRunnable {
+    return (runnable as UpdateModelRunnable).getUri != null;
+}
+
+export abstract class Item{
+
     parent:Item;
 
     listeners:((i:Item)=>void) [] =[]
@@ -27,8 +113,8 @@ export abstract class Item {
 
     detach(){
         this.dispose();
-        this.children().forEach(x=> {
-            x.detach()
+        this.children().forEach(x=>{
+            if (x.detach)x.detach();
         });
     }
 
@@ -68,7 +154,7 @@ export abstract class Item {
         this._title=t;
     }
 
-    render(r: RenderingOptions ={}):UI.UIComponent{
+    render(r:any={}):UI.UIComponent{
         throw new Error("Not Implemented")
     }
 
@@ -88,23 +174,24 @@ export abstract class Item {
 
 export class TypeDisplayItem extends Item{
 
-    constructor(private detailsNode: any){
+    constructor(private detailsNode:any, protected context: DetailsContext){
         super("Type " + detailsNode.title,"");
     }
-    render(r:RenderingOptions){
+    render(r:any){
         let container=new UI.WrapPanel();
 
         container.setCaption(this.title());
 
         return container;
+        //return typeDisplay.render(this.detailsNode);
     }
     dispose(){
 
     }
 }
+class Category extends Item{
 
-class Category extends Item {
-    _children:Item[]=[];
+    _children:Item[]=[]
     descriptionLabel:UI.UIComponent;
     subCategories: UI.UIComponent;
     _result:UI.Panel;
@@ -234,7 +321,8 @@ class TopLevelNode extends Category{
     _panel:UI.Panel;
     _options:RenderingOptions;
 
-    constructor(protected detailsNode: any){
+    constructor(protected detailsNode:any,
+                protected context: DetailsContext){
         super(detailsNode.title,detailsNode.description);
     }
 
@@ -327,7 +415,8 @@ class CheckBox2 extends UI.CheckBox implements UI.IField<any>{
 }
 class PropertyEditorInfo extends Item{
 
-    constructor(protected outlineNode : any){
+    constructor(protected outlineNode : any,
+                protected context: DetailsContext){
         super(outlineNode.title,outlineNode.description);
     }
 
@@ -356,7 +445,19 @@ class PropertyEditorInfo extends Item{
     }
 
     fromEditorToModel(newValue? : any, oldValue? : any){
-        
+        const detailsChangeRunnable =
+            new UpdateModelRunnable(this.context, this.outlineNode, newValue);
+
+        const context = this.context;
+
+        context.reconciler.schedule(detailsChangeRunnable).then((changedDocuments) => {
+            if(context.localModel) {
+                return;
+            }
+            
+            assistUtils.applyChangedDocuments(changedDocuments);
+            assistUtils.gotoPosition(context.position);
+        })
     }
 
     toLocalValue(inputValue) {
@@ -411,10 +512,8 @@ class PropertyEditorInfo extends Item{
     }
 }
 
-class SimpleMultiEditor extends PropertyEditorInfo{
-    fromEditorToModel() {
-        
-    }
+class SimpleMultiEditor extends PropertyEditorInfo {
+    
     fromModelToEditor(){
         this.fld.getBinding().set(this.outlineNode.valueText);
     }
@@ -557,8 +656,8 @@ class MarkdownField extends PropertyEditorInfo{
 
 }
 class ExampleField extends PropertyEditorInfo{
-    constructor(outlineNode: any) {
-        super(outlineNode);
+    constructor(outlineNode: any, context: DetailsContext) {
+        super(outlineNode, context);
     }
 
     createField(){
@@ -580,8 +679,8 @@ class ExampleField extends PropertyEditorInfo{
 }
 class XMLExampleField extends PropertyEditorInfo{
 
-    constructor(outlineNode: any) {
-        super(outlineNode);
+    constructor(outlineNode: any, context: DetailsContext) {
+        super(outlineNode, context);
     }
 
     createField(){
@@ -623,8 +722,8 @@ class JSONSchemaField extends PropertyEditorInfo{
 }
 class SelectBox extends PropertyEditorInfo{
 
-    constructor(protected outlineNode : any) {
-        super(outlineNode)
+    constructor(protected outlineNode : any, context: DetailsContext) {
+        super(outlineNode, context)
     }
 
     createField(){
@@ -640,7 +739,6 @@ class SelectBox extends PropertyEditorInfo{
 }
 
 class TypeSelectBox extends SelectBox {
-
     fromEditorToModel(newValue? : any, oldValue? : any){
         
     }
@@ -648,7 +746,7 @@ class TypeSelectBox extends SelectBox {
 
 class TreeField extends UI.Panel implements UI.IField<any>{
 
-    constructor(outlineNode : any) {
+    constructor(outlineNode : any, protected context: DetailsContext) {
         super();
 
         var renderer={
@@ -674,9 +772,7 @@ class TreeField extends UI.Panel implements UI.IField<any>{
         var viewer=UI.treeViewer(getChildren, renderer, x => x.title);
 
         var inputValue={
-            children(){
-                return [outlineNode];
-            }
+            children:[outlineNode]
         }
 
         viewer.setInput(<any>inputValue);
@@ -685,14 +781,8 @@ class TreeField extends UI.Panel implements UI.IField<any>{
 
         this.addChild(viewer);
     }
-    
-    detach() {
-        
-    }
-    
-    render() {
-        
-    }
+
+
 
     setLabelWidth(){
 
@@ -711,7 +801,7 @@ class StructuredField extends PropertyEditorInfo{
         let children = this.outlineNode.children;
         if (!children || children.length != 1) return null;
 
-        var tm= new TreeField(children[0]);
+        var tm= new TreeField(children[0], this.context);
         return tm;
     }
 }
@@ -722,13 +812,16 @@ class LowLevelTreeField extends PropertyEditorInfo{
         let children = this.outlineNode.children;
         if (!children || children.length != 1) return null;
 
-        var tm= new TreeField(children[0]);
+        var tm= new TreeField(children[0], this.context);
         return tm;
     }
 }
 
-export function buildItem(detailsNode: any,dialog:boolean): any {
-    let root = new TopLevelNode(detailsNode);
+export function buildItem(detailsNode:any,
+                          context: DetailsContext, dialog:boolean){
+
+
+    let root=new TopLevelNode(detailsNode, context);
 
     if(detailsNode.children) {
         for (let child of detailsNode.children) {
@@ -738,73 +831,69 @@ export function buildItem(detailsNode: any,dialog:boolean): any {
                 let categoryName = child.title;
                 if (child.children) {
                     for (let childOfChild of child.children) {
-                        buildItemInCategory(childOfChild, root, categoryName);
+                        buildItemInCategory(childOfChild, root, categoryName, context);
                     }
                 }
 
             } else {
-                buildItemInCategory(child, root, null);
+                buildItemInCategory(child, root, null, context);
             }
 
         }
     }
 
-    return root;
+    return <any>root;
 }
 
 function buildItemInCategory(
-    detailsNode: any, root: TopLevelNode, categoryName:string) {
+    detailsNode: any, root: TopLevelNode, categoryName:string,
+    context: DetailsContext) {
 
     let item = null;
 
-    if(detailsNode.type == "CHECKBOX"
-        && (<any>detailsNode).valueText !== null) {
-        item = new CheckBoxField(<any>detailsNode);
+    if(detailsNode.type == "CHECKBOX") {
+        item = new CheckBoxField(<any>detailsNode, context);
     }
     else if(detailsNode.type == "JSONSCHEMA"
         && (<any>detailsNode).valueText !== null) {
-        item = new JSONSchemaField(<any>detailsNode);
+        item = new JSONSchemaField(<any>detailsNode, context);
     }
     else if(detailsNode.type == "XMLSCHEMA"
         && (<any>detailsNode).valueText !== null) {
-        item = new XMLSchemaField(<any>detailsNode);
+        item = new XMLSchemaField(<any>detailsNode, context);
     }
-    else if(detailsNode.type == "MARKDOWN"
-        && (<any>detailsNode).valueText !== null) {
-        item = new MarkdownField(<any>detailsNode);
+    else if(detailsNode.type == "MARKDOWN") {
+        item = new MarkdownField(<any>detailsNode, context);
     }
     else if(detailsNode.type == "SELECTBOX"
         && (<any>detailsNode).options !== null) {
-        item = new SelectBox(<any>detailsNode);
+        item = new SelectBox(<any>detailsNode, context);
     }
-    else if(detailsNode.type == "MULTIEDITOR"
-        && (<any>detailsNode).valueText !== null) {
-        item = new SimpleMultiEditor(<any>detailsNode);
+    else if(detailsNode.type == "MULTIEDITOR") {
+        item = new SimpleMultiEditor(<any>detailsNode, context);
     }
     else if(detailsNode.type == "TREE") {
-        item = new TreeField(detailsNode);
+        item = new LowLevelTreeField(<any>detailsNode, context);
     }
     else if(detailsNode.type == "STRUCTURED") {
-        item = new StructuredField(<any>detailsNode);
+        item = new StructuredField(<any>detailsNode, context);
     }
     else if(detailsNode.type == "TYPEDISPLAY") {
-        item = new TypeDisplayItem(detailsNode);
+        item = new TypeDisplayItem(detailsNode, context);
     }
-    else if(detailsNode.type == "TYPESELECT"
-        && (<any>detailsNode).valueText !== null) {
-        item = new TypeSelectBox(<any>detailsNode);
+    else if(detailsNode.type == "TYPESELECT") {
+        item = new TypeSelectBox(<any>detailsNode, context);
     }
     else if(detailsNode.type == "JSONEXAMPLE"
         && (<any>detailsNode).valueText !== null) {
-        item = new ExampleField(<any>detailsNode);
+        item = new ExampleField(<any>detailsNode, context);
     }
     else if(detailsNode.type == "XMLEXAMPLE"
         && (<any>detailsNode).valueText !== null) {
-        item = new XMLExampleField(<any>detailsNode);
+        item = new XMLExampleField(<any>detailsNode, context);
     }
-    else if(detailsNode.type == "ATTRIBUTETEXT"
-        && (<any>detailsNode).valueText !== null) {
-        item = new PropertyEditorInfo(<any>detailsNode);
+    else if(detailsNode.type == "ATTRIBUTETEXT") {
+        item = new PropertyEditorInfo(<any>detailsNode, context);
     }
 
     if (item != null) {

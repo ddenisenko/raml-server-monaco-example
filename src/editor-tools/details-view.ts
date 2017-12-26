@@ -8,15 +8,24 @@ import editorTools=require("./editor-tools")
 import fs=require("fs")
 import _=require("underscore")
 
+import {
+    Reconciler
+} from "./reconciler"
+
 declare var RAML;
 
 export class RamlDetails extends SC.Scrollable {
+
+    private reconciler: Reconciler;
 
     constructor(private allowStructureChanges: boolean = true) {
         super();
         (<any>this).addClass('raml-details');
 
-        RAML.Server.getConnection().onDetailsReport(report=>this.onDetailsReport(report))
+        const connection = RAML.Server.getConnection();
+        connection.onDetailsReport(report=>this.onDetailsReport(report))
+
+        this.reconciler = new Reconciler(connection, 800);
     }
 
     getTitle() {
@@ -49,7 +58,7 @@ export class RamlDetails extends SC.Scrollable {
     
     schemaView:UI.BasicComponent<any>;
     
-    private setResource(detailsNode: any) {
+    private setResource(detailsNode: any, context: any) {
         if (this.wasSchema){
             this.schemaView.dispose();
             this.schemaView=null;
@@ -57,21 +66,22 @@ export class RamlDetails extends SC.Scrollable {
         this.wasSchema=false;
 
         window["detailsnode"] = detailsNode;
+        window["detailscontext"] = context;
 
         if (detailsNode == null) this.displayEmpty();
-        details.updateDetailsPanel(detailsNode, this.container, true);
+        details.updateDetailsPanel(detailsNode, context, this.container, true);
     }
 
     update() {
         if(window["detailsnode"]) {
-            this.setResource(window["detailsnode"]);
+            this.setResource(window["detailsnode"], window["detailscontext"]);
         }
     }
 
     displayEmpty() {
         this.container.clear();
     }
-    
+
     destroy (): void {
         editorTools.aquireManager()._details=null;
         this.disposables.dispose();
@@ -80,6 +90,7 @@ export class RamlDetails extends SC.Scrollable {
         this.container.dispose();
         this.container=null;
         window["detailsnode"]=null;
+        window["detailscontext"]=null;
         this._children=[];
         if (details.oldItem){
             details.oldItem.detach();
@@ -94,10 +105,18 @@ export class RamlDetails extends SC.Scrollable {
     show(unitPath: string, position: number, force: boolean = false) {
         if (!force && this._unitPath == unitPath && this._position === position) return;
         this._unitPath = unitPath;
-        this._position = position
+        this._position = position;
+        const reconciler = this.reconciler;
+
         try {
+
             RAML.Server.getConnection().getDetails(unitPath, position).then(detailsNode=>{
-                this.setResource(detailsNode);
+                this.setResource(detailsNode, {
+                    uri: unitPath,
+                    position: position,
+                    localModel: false,
+                    reconciler
+                });
             })
 
         } catch (e) {}
@@ -105,10 +124,16 @@ export class RamlDetails extends SC.Scrollable {
 
     onDetailsReport(report : any) {
         if (report.uri != this._unitPath) return;
+        const reconciler = this.reconciler;
         RAML.Server.getConnection().getLatestVersion(report.uri).then(latestVersion => {
             if (report.version != null && report.version < latestVersion) return;
 
-            this.setResource(report.details);
+            this.setResource(report.details, {
+                uri: report.uri,
+                position: report.position,
+                localModel: false,
+                reconciler
+            });
         })
     }
 }

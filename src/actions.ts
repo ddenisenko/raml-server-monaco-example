@@ -48,7 +48,28 @@ function descriptorConditionId(id: string): string {
     return "action_" + id + "_is_enabled";
 }
 
+var allActions = [];
+
+(<any>window).allActions = allActions;
+
 function createActionDescriptor(serverAction: any): IActionDescriptor {
+    var aid = "raml.action." + serverAction.id.replace(new RegExp(' ', 'g'), '_').toLowerCase();
+    
+    allActions.push({
+        when: aid + '.enabled == true',
+        command: aid,
+        group: (serverAction.category && serverAction.category[0]) || 'navigation'
+    });
+
+    // "menus": {
+    //     "editor/context": [
+    //         {
+    //             "when": "ramlcontext.hello == true",
+    //             "command": "extension.hello",
+    //             "group": "navigation"
+    //         }
+    //     ]
+    // }
 
     return {
         id: serverAction.id,

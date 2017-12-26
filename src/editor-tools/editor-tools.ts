@@ -1,4 +1,3 @@
-import webUi = require("atom-web-ui");
 import atom = require("atom-web-ui/dist/core/atomWrapperWeb");
 
 import path = require("path");

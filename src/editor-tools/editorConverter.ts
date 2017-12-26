@@ -12,7 +12,9 @@ export function fromMonacoEditor(editor: monaco.editor.ICommonCodeEditor): atom.
             var position = editor.getModel().getPositionAt(offset);
 
             return {column: position.column, row: position.lineNumber}
-        }
+        },
+        
+        setText: (text: string) => editor.setValue(text)
     };
     
     var result =  <atom.TextEditor><any>{

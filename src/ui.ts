@@ -41,6 +41,11 @@ export function init() {
         
         var offset = editor.getModel().getOffsetAt(position);
 
+        RAML.Server.getConnection().documentChanged({
+            uri: uri,
+            text: model.getValue()
+        });
+
         RAML.Server.getConnection().positionChanged(uri, offset);
 
         RAML.Server.getConnection().markOccurrences(uri, offset);

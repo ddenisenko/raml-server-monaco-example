@@ -9,6 +9,7 @@ import usages = require('./usages')
 import rename = require('./rename')
 import filesystem = require('./filesystem')
 import uiDisplay = require('./uiDisplay')
+import occurences = require('./occurences')
 
 /**
  * Represents editor UI.
@@ -93,6 +94,8 @@ export function init(monacoEngine : typeof monaco) {
     usages.init(monacoEngine, RAML_LANGUAGE);
 
     rename.init(monacoEngine, RAML_LANGUAGE);
+
+    occurences.init(monacoEngine, RAML_LANGUAGE);
 
     RAML.Server.getConnection().setLoggerConfiguration({
         allowedComponents: [

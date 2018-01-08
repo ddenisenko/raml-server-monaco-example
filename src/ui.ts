@@ -47,8 +47,6 @@ export function init() {
         });
 
         RAML.Server.getConnection().positionChanged(uri, offset);
-
-        RAML.Server.getConnection().markOccurrences(uri, offset);
     })
 
     actions.bindActions(editor);

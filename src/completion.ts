@@ -32,22 +32,22 @@ function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position
         let result = [];
 
         for (let suggestion of suggestions) {
-            let text = suggestion.text || suggestion.displayText;
+            let text = suggestion.text || suggestion.snippet || suggestion.displayText;
 
             text = removeCompletionPreviousLineIndentation(text);
-            
-            var prepared: any = {
-                label: text,
-                kind:  suggestion.snippet ? monaco.languages.CompletionItemKind.Text : monaco.languages.CompletionItemKind.Text,
-            };
-            
-            if(suggestion.snippet) {
-                prepared.insertText = {
-                    value: suggestion.snippet
-                }
-            }
 
-            result.push(prepared);
+            if(suggestion.extra && suggestion.displayText) {
+                result.push({
+                    label: suggestion.displayText,
+                    insertText: suggestion.extra + text,
+                    kind: 1
+                });
+            } else {
+                result.push({
+                    label: text,
+                    kind: 1
+                });
+            }
         }
 
         return result;

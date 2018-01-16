@@ -23,7 +23,7 @@ function removeCompletionPreviousLineIndentation(originalText: string) {
  * @param position
  */
 function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position : monaco.IPosition) {
-    let uri = model.uri.toString()
+    let uri = model.uri.toString();
 
     let offset = model.getOffsetAt(position);
 
@@ -60,11 +60,11 @@ function calculateCompletionItems(model : monaco.editor.IReadOnlyModel, position
  * @param languageIdentifier
  */
 export function init(monacoEngine : typeof monaco, languageIdentifier: string) {
-
     monacoEngine.languages.registerCompletionItemProvider(languageIdentifier, {
         provideCompletionItems: function(model, position) {
             return calculateCompletionItems(model, position)
-        }
+        },
+        
+        triggerCharacters: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     });
-
 }

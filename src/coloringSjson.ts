@@ -13,7 +13,7 @@ export const monarch = {
     numberInfinity: /[+-]?\.(?:inf|Inf|INF)/,
     numberNaN: /\.(?:nan|Nan|NAN)/,
     numberDate: /\d{4}-\d\d-\d\d([Tt ]\d\d:\d\d:\d\d(\.\d+)?(( ?[+-]\d\d?(:\d\d)?)|Z)?)?/,
-    
+
     escapes: /\\(?:[btnfr\\"']|[0-7][0-7]?|[0-3][0-7]{2})/,
     value: /(((".*?"|'.*?')[ \t\r\n]*[^:])|((".*?"|'.*?')($)))/,
     path: /(("((http:|https:|#)\/).*?"|'((http:|https:|#)\/).*?')([ \t\r\n]*[^:]|$))/,
@@ -55,8 +55,13 @@ export const monarch = {
             [/("(\$ref).*?"|'(\$ref).*?')(:)/, 'oas-reference']
         ],
 
+        method: [
+            [/("(get|post|put|patch|head|delete|options|trace|connect)"|'(get|post|put|patch|head|delete|options|trace|connect)')(:)/, 'oas-method']
+        ],
+
         object: [
             {include: '@reference'},
+            {include: '@method'},
             {include: '@resource'},
             {include: '@response'},
             {include: '@key'},
@@ -102,7 +107,7 @@ export const monarch = {
                 }
             }]
         ],
-        
+
         whitespace: [
             [/[ \t\r\n]+/, 'white']
         ],
@@ -120,7 +125,7 @@ export const monarch = {
             ['@path', 'oas-path'],
             ['@value', 'oas-value']
         ],
-        
+
         flowNumber: [
             [/@numberInteger(?=[ \t]*[,\]\}])/,  'number'],
             [/@numberFloat(?=[ \t]*[,\]\}])/,    'number.float'],
